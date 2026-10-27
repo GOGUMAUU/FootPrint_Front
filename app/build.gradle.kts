@@ -1,5 +1,19 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
+}
+
+// Put secrets / machine-specific values in local.properties (do not commit them).
+val localProperties = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.inputStream().use { localProperties.load(it) }
+}
+val naverMapClientId: String = localProperties.getProperty("NAVER_MAP_CLIENT_ID", "YOUR_NCP_KEY_ID_HERE")
+var apiBaseUrl: String = localProperties.getProperty("API_BASE_URL", "https://example.com/")
+if (!apiBaseUrl.endsWith("/")) {
+    apiBaseUrl += "/"
 }
 
 android {
@@ -18,6 +32,8 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
+        manifestPlaceholders["NAVER_MAP_CLIENT_ID"] = naverMapClientId
     }
 
     buildTypes {
@@ -28,6 +44,10 @@ android {
                 "proguard-rules.pro"
             )
         }
+    }
+    buildFeatures {
+        buildConfig = true
+        viewBinding = true
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -53,4 +73,6 @@ dependencies {
 
     // Coroutines (비동기 처리)
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+
+    implementation("com.naver.maps:map-sdk:3.24.0")
 }

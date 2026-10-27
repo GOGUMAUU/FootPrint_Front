@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:padding="16dp">
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="현재 지역 도전과제" android:textSize="22sp" android:textStyle="bold" />
+    <TextView android:id="@+id/tvChallengeInfo" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingTop="16dp" android:text="GPS 인증 후 이용 가능한 지역 도전과제를 표시합니다." />
+    <Button android:id="@+id/btnVerify" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="현재 위치로 방문 인증" />
+    <Button android:id="@+id/btnSubmit" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="사진 + 기록 제출" />
+</LinearLayout>

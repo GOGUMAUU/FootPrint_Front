@@ -1,9 +1,9 @@
 package com.example.footprint.data.remote
 
-import Guestbook
 import Quest
 import retrofit2.Response
 import retrofit2.http.*
+import com.example.footprint.data.model.Guestbook
 
 interface ApiService {
     // 방명록 조회

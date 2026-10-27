@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="1. 지도에서 방문 장소를 선택하세요" android:textStyle="bold" android:textSize="18sp" />
+    <com.naver.maps.map.MapView android:id="@+id/createMapView" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:layout_marginTop="12dp" />
+    <TextView android:id="@+id/tvSelectedLocation" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="선택된 위치 없음" android:padding="8dp" />
+    <Button android:id="@+id/btnPickPhoto" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="사진 선택" />
+    <EditText android:id="@+id/etContent" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="짧은 글 (예: 120자 이내)" android:maxLength="120" />
+    <Button android:id="@+id/btnSave" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="방명록 저장" />
+</LinearLayout>
