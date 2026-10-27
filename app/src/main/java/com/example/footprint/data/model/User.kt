@@ -1,3 +1,5 @@
+package com.example.footprint.data.model
+
 data class User(
     val userId: Long,
     val email: String,
