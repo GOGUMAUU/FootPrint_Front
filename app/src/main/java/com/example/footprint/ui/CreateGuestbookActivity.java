@@ -27,6 +27,18 @@ import com.naver.maps.map.CameraUpdate;
 import com.naver.maps.map.overlay.CircleOverlay;
 import java.util.Locale;
 import java.util.function.Consumer;
+import android.view.Gravity;
+import android.view.ViewGroup;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import androidx.activity.result.PickVisualMediaRequest;
+import androidx.core.content.FileProvider;
+import com.bumptech.glide.Glide;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 public class CreateGuestbookActivity extends AppCompatActivity implements OnMapReadyCallback {
     private ActivityCreateGuestbookBinding binding;
@@ -39,12 +51,25 @@ public class CreateGuestbookActivity extends AppCompatActivity implements OnMapR
     private FusedLocationProviderClient fusedClient;
     private final ActivityResultLauncher<String[]> locationPermission = registerForActivityResult(
             new ActivityResultContracts.RequestMultiplePermissions(), result -> loadCurrentLocation(null));
-    private Uri selectedPhoto;
+    private static final int MAX_PHOTOS = 3;
+    private final List<Uri> photos = new ArrayList<>();
+    private Uri cameraUri;
 
-    private final ActivityResultLauncher<String> pickPhoto = registerForActivityResult(
-            new ActivityResultContracts.GetContent(), uri -> {
-                selectedPhoto = uri;
-                binding.btnPickPhoto.setText(uri == null ? "사진 선택" : "사진 선택됨");
+    private final ActivityResultLauncher<PickVisualMediaRequest> pickPhotos = registerForActivityResult(
+            new ActivityResultContracts.PickMultipleVisualMedia(MAX_PHOTOS), uris -> {
+                for (Uri u : uris) {
+                    if (photos.size() >= MAX_PHOTOS) break;
+                    photos.add(u);
+                }
+                renderPhotos();
+            });
+
+    private final ActivityResultLauncher<Uri> takePhoto = registerForActivityResult(
+            new ActivityResultContracts.TakePicture(), ok -> {
+                if (ok && cameraUri != null && photos.size() < MAX_PHOTOS) {
+                    photos.add(cameraUri);
+                    renderPhotos();
+                }
             });
 
     @Override protected void onCreate(Bundle savedInstanceState) {
@@ -53,7 +78,16 @@ public class CreateGuestbookActivity extends AppCompatActivity implements OnMapR
         setContentView(binding.getRoot());
         binding.createMapView.onCreate(savedInstanceState);
         binding.createMapView.getMapAsync(this);
-        binding.btnPickPhoto.setOnClickListener(v -> pickPhoto.launch("image/*"));
+        binding.btnPickPhoto.setOnClickListener(v -> {
+            if (photos.size() >= MAX_PHOTOS) {
+                Toast.makeText(this, "사진은 최대 " + MAX_PHOTOS + "장까지예요.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            pickPhotos.launch(new PickVisualMediaRequest.Builder()
+                    .setMediaType(ActivityResultContracts.PickVisualMedia.ImageOnly.INSTANCE).build());
+        });
+        binding.btnTakePhoto.setOnClickListener(v -> openCamera());
+        renderPhotos();
         binding.btnSave.setOnClickListener(v -> save());
         fusedClient = LocationServices.getFusedLocationProviderClient(this);
         requestLocation();
@@ -88,11 +122,55 @@ public class CreateGuestbookActivity extends AppCompatActivity implements OnMapR
     private void save() {
         String text = binding.etContent.getText().toString().trim();
         if (selected == null) { Toast.makeText(this, "지도에서 장소를 선택하세요.", Toast.LENGTH_SHORT).show(); return; }
-        if (selectedPhoto == null) { Toast.makeText(this, "사진을 선택하세요.", Toast.LENGTH_SHORT).show(); return; }
+        if (photos.isEmpty()) { Toast.makeText(this, "사진을 선택하세요.", Toast.LENGTH_SHORT).show(); return; }
         if (text.isEmpty()) { Toast.makeText(this, "짧은 글을 입력하세요.", Toast.LENGTH_SHORT).show(); return; }
         // TODO: 1) current GPS와 selected 좌표 간 create 허용거리 검증 2) 사진 업로드 3) guestbook POST.
 
         Toast.makeText(this, "저장 API 연결 지점까지 구현된 스캐폴드입니다.", Toast.LENGTH_LONG).show();
+    }
+    // ---------- 사진 ----------
+    private void openCamera() {
+        if (photos.size() >= MAX_PHOTOS) {
+            Toast.makeText(this, "사진은 최대 " + MAX_PHOTOS + "장까지예요.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        File dir = new File(getCacheDir(), "images");
+        if (!dir.exists()) dir.mkdirs();
+        File file = new File(dir, "cam_" + System.currentTimeMillis() + ".jpg");
+        cameraUri = FileProvider.getUriForFile(this, getPackageName() + ".fileprovider", file);
+        takePhoto.launch(cameraUri);
+    }
+
+    /** photos 목록을 썸네일로 다시 그리고 "사진 n/3" 문구를 갱신합니다. */
+    private void renderPhotos() {
+        binding.photoContainer.removeAllViews();
+        float d = getResources().getDisplayMetrics().density;
+        int size = (int) (96 * d);
+        int pad = (int) (6 * d);
+        for (Uri uri : photos) {
+            FrameLayout cell = new FrameLayout(this);
+            LinearLayout.LayoutParams cellLp = new LinearLayout.LayoutParams(size, size);
+            cellLp.setMarginEnd((int) (8 * d));
+            cell.setLayoutParams(cellLp);
+
+            ImageView img = new ImageView(this);
+            img.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            Glide.with(this).load(uri).into(img);
+            cell.addView(img, new FrameLayout.LayoutParams(size, size));
+
+            TextView x = new TextView(this);
+            x.setText("✕");
+            x.setTextColor(0xFFFFFFFF);
+            x.setBackgroundColor(0x99000000);
+            x.setPadding(pad, pad, pad, pad);
+            x.setOnClickListener(v -> { photos.remove(uri); renderPhotos(); });
+            cell.addView(x, new FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT,
+                    Gravity.TOP | Gravity.END));
+
+            binding.photoContainer.addView(cell);
+        }
+        binding.tvPhotoCount.setText("사진 " + photos.size() + "/" + MAX_PHOTOS);
     }
 
     // ---------- 위치 ----------
