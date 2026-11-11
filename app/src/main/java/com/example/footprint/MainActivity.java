@@ -56,6 +56,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         binding.fabCreate.setOnClickListener(v -> startActivity(new Intent(this, CreateGuestbookActivity.class)));
         binding.btnUsers.setOnClickListener(v -> startActivity(new Intent(this, UserSearchActivity.class)));
+        android.widget.Button accountButton = new android.widget.Button(this);
+        accountButton.setText("로그인 / 회원가입");
+        ((android.widget.LinearLayout) binding.btnUsers.getParent()).addView(accountButton);
+        accountButton.setOnClickListener(v -> startActivity(new Intent(this, com.example.footprint.ui.LoginActivity.class)));
         binding.btnChallenges.setOnClickListener(v -> startActivity(new Intent(this, ChallengeActivity.class)));
         binding.btnNearby.setOnClickListener(v -> switchMode("nearby"));
         binding.btnFollowing.setOnClickListener(v -> switchMode("following"));
