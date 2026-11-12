@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="방명록 수정" android:textStyle="bold" android:textSize="18sp" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="장소는 수정할 수 없어요." android:textColor="#8A7B63" android:paddingTop="4dp" />
+        <TextView android:id="@+id/tvPhotoCount" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="사진 0/3" android:paddingTop="16dp" />
+        <HorizontalScrollView android:layout_width="match_parent" android:layout_height="wrap_content" android:scrollbars="none">
+            <LinearLayout android:id="@+id/photoContainer" android:layout_width="wrap_content" android:layout_height="wrap_content" android:minHeight="72dp" android:orientation="horizontal" />
+        </HorizontalScrollView>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+            <Button android:id="@+id/btnPickPhoto" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="갤러리" />
+            <Button android:id="@+id/btnTakePhoto" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="카메라" />
+        </LinearLayout>
+        <EditText android:id="@+id/etContent" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="짧은 글 (120자 이내)" android:maxLength="120" />
+        <Button android:id="@+id/btnSave" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="수정 완료" />
+    </LinearLayout>
+</ScrollView>

@@ -94,8 +94,7 @@ public class GuestbookDetailDialog extends DialogFragment {
         binding.btnClose.setOnClickListener(v -> dismiss());
         binding.btnLike.setOnClickListener(v -> toggleLike());
         binding.btnDelete.setOnClickListener(v -> confirmDelete());
-        binding.btnEdit.setOnClickListener(v ->
-                Toast.makeText(requireContext(), "수정 화면은 다음 단계에서 연결돼요.", Toast.LENGTH_SHORT).show());
+        binding.btnEdit.setOnClickListener(v -> openEdit());
         load();
     }
 
@@ -139,6 +138,7 @@ public class GuestbookDetailDialog extends DialogFragment {
         binding.tvMeta.setText(meta);
         renderPhotos(d.photoUrls);
         binding.ownerRow.setVisibility(d.mine ? View.VISIBLE : View.GONE);
+        binding.btnEdit.setTag(d);
         renderLike();
     }
 
@@ -190,6 +190,22 @@ public class GuestbookDetailDialog extends DialogFragment {
             @Override public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> res) {}
             @Override public void onFailure(@NonNull Call<Void> call, @NonNull Throwable t) {}
         });
+    }
+
+    // ---------- 수정 ----------
+    private void openEdit() {
+        Object tag = binding.btnEdit.getTag();
+        if (!(tag instanceof GuestbookDetail)) return;
+        GuestbookDetail d = (GuestbookDetail) tag;
+        android.content.Intent it = new android.content.Intent(requireContext(), EditGuestbookActivity.class);
+        it.putExtra(EditGuestbookActivity.EXTRA_ID, guestbookId);
+        it.putExtra(EditGuestbookActivity.EXTRA_CONTENT, d.content);
+        it.putExtra(EditGuestbookActivity.EXTRA_VISIBILITY, d.visibility);
+        it.putExtra(EditGuestbookActivity.EXTRA_LOCATION_NAME, d.locationName);
+        it.putStringArrayListExtra(EditGuestbookActivity.EXTRA_PHOTOS,
+                d.photoUrls == null ? new java.util.ArrayList<String>() : new java.util.ArrayList<String>(d.photoUrls));
+        startActivity(it);
+        dismissAllowingStateLoss();
     }
 
     // ---------- 삭제 ----------
