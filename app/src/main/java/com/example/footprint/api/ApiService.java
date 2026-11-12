@@ -20,6 +20,13 @@ import retrofit2.http.Path;
 import retrofit2.http.Query;
 
 public interface ApiService {
+    @retrofit2.http.DELETE("api/guestbooks/{guestbookId}")
+    retrofit2.Call<Void> deleteGuestbook(@retrofit2.http.Path("guestbookId") long guestbookId);
+
+    @retrofit2.http.PUT("api/guestbooks/{guestbookId}")
+    retrofit2.Call<com.example.footprint.data.model.GuestbookDetail> updateGuestbook(
+            @retrofit2.http.Path("guestbookId") long guestbookId,
+            @retrofit2.http.Body java.util.Map<String, Object> body);
     @retrofit2.http.GET("api/guestbooks/{guestbookId}")
     retrofit2.Call<com.example.footprint.data.model.GuestbookDetail> getGuestbookDetail(
             @retrofit2.http.Path("guestbookId") long guestbookId,

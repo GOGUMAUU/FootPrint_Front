@@ -93,6 +93,9 @@ public class GuestbookDetailDialog extends DialogFragment {
         }
         binding.btnClose.setOnClickListener(v -> dismiss());
         binding.btnLike.setOnClickListener(v -> toggleLike());
+        binding.btnDelete.setOnClickListener(v -> confirmDelete());
+        binding.btnEdit.setOnClickListener(v ->
+                Toast.makeText(requireContext(), "수정 화면은 다음 단계에서 연결돼요.", Toast.LENGTH_SHORT).show());
         load();
     }
 
@@ -135,6 +138,7 @@ public class GuestbookDetailDialog extends DialogFragment {
         if (d.locationName != null && !d.locationName.isEmpty()) meta += " · " + d.locationName;
         binding.tvMeta.setText(meta);
         renderPhotos(d.photoUrls);
+        binding.ownerRow.setVisibility(d.mine ? View.VISIBLE : View.GONE);
         renderLike();
     }
 
@@ -185,6 +189,42 @@ public class GuestbookDetailDialog extends DialogFragment {
         ApiClient.get().saveView(String.valueOf(guestbookId)).enqueue(new Callback<Void>() {
             @Override public void onResponse(@NonNull Call<Void> call, @NonNull Response<Void> res) {}
             @Override public void onFailure(@NonNull Call<Void> call, @NonNull Throwable t) {}
+        });
+    }
+
+    // ---------- 삭제 ----------
+    private void confirmDelete() {
+        new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                .setTitle("방명록 삭제")
+                .setMessage("이 방명록을 삭제할까요? 삭제하면 되돌릴 수 없어요.")
+                .setNegativeButton("취소", null)
+                .setPositiveButton("삭제", (d, w) -> doDelete())
+                .show();
+    }
+
+    private void doDelete() {
+        if (busy) return;
+        busy = true;
+        binding.btnDelete.setEnabled(false);
+        final android.content.Context appCtx = requireContext().getApplicationContext();
+        ApiClient.get().deleteGuestbook(guestbookId).enqueue(new Callback<Void>() {
+            @Override public void onResponse(@NonNull Call<Void> c, @NonNull Response<Void> res) {
+                busy = false;
+                if (res.isSuccessful()) {
+                    Toast.makeText(appCtx, "방명록을 삭제했어요.", Toast.LENGTH_SHORT).show();
+                    if (isAdded()) dismissAllowingStateLoss();
+                    return;
+                }
+                if (binding == null) return;
+                binding.btnDelete.setEnabled(true);
+                Toast.makeText(appCtx, errorMessage(res), Toast.LENGTH_SHORT).show();
+            }
+            @Override public void onFailure(@NonNull Call<Void> c, @NonNull Throwable t) {
+                busy = false;
+                if (binding == null) return;
+                binding.btnDelete.setEnabled(true);
+                Toast.makeText(appCtx, "서버에 연결할 수 없어요.", Toast.LENGTH_SHORT).show();
+            }
         });
     }
 
