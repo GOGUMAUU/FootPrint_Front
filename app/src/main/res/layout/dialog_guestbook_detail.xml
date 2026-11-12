@@ -118,6 +118,29 @@
                         android:textColor="#3B3226"
                         android:textSize="15sp" />
                 </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/ownerRow"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:gravity="end"
+                    android:orientation="horizontal"
+                    android:visibility="gone">
+
+                    <Button
+                        android:id="@+id/btnEdit"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="수정" />
+
+                    <Button
+                        android:id="@+id/btnDelete"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:text="삭제" />
+                </LinearLayout>
             </LinearLayout>
         </LinearLayout>
     </ScrollView>
