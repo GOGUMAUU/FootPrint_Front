@@ -39,6 +39,19 @@ import com.bumptech.glide.Glide;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import com.example.footprint.api.ApiClient;
+import com.example.footprint.data.model.Guestbook;
+import com.example.footprint.util.ImageCompressor;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
+import org.json.JSONObject;
+import retrofit2.Response;
 
 public class CreateGuestbookActivity extends AppCompatActivity implements OnMapReadyCallback {
     private ActivityCreateGuestbookBinding binding;
@@ -54,6 +67,8 @@ public class CreateGuestbookActivity extends AppCompatActivity implements OnMapR
     private static final int MAX_PHOTOS = 3;
     private final List<Uri> photos = new ArrayList<>();
     private Uri cameraUri;
+    private final ExecutorService io = Executors.newSingleThreadExecutor();
+    private boolean saving;
 
     private final ActivityResultLauncher<PickVisualMediaRequest> pickPhotos = registerForActivityResult(
             new ActivityResultContracts.PickMultipleVisualMedia(MAX_PHOTOS), uris -> {
@@ -124,9 +139,7 @@ public class CreateGuestbookActivity extends AppCompatActivity implements OnMapR
         if (selected == null) { Toast.makeText(this, "지도에서 장소를 선택하세요.", Toast.LENGTH_SHORT).show(); return; }
         if (photos.isEmpty()) { Toast.makeText(this, "사진을 선택하세요.", Toast.LENGTH_SHORT).show(); return; }
         if (text.isEmpty()) { Toast.makeText(this, "짧은 글을 입력하세요.", Toast.LENGTH_SHORT).show(); return; }
-        // TODO: 1) current GPS와 selected 좌표 간 create 허용거리 검증 2) 사진 업로드 3) guestbook POST.
-
-        Toast.makeText(this, "저장 API 연결 지점까지 구현된 스캐폴드입니다.", Toast.LENGTH_LONG).show();
+        submit(text);
     }
     // ---------- 사진 ----------
     private void openCamera() {
@@ -171,6 +184,103 @@ public class CreateGuestbookActivity extends AppCompatActivity implements OnMapR
             binding.photoContainer.addView(cell);
         }
         binding.tvPhotoCount.setText("사진 " + photos.size() + "/" + MAX_PHOTOS);
+    }
+    // ---------- 저장 ----------
+    /** 현재 위치를 다시 확인 → 사진 압축·업로드 → 방명록 저장. */
+    private void submit(String text) {
+        if (saving) return;
+        setSaving(true);
+        loadCurrentLocation(loc -> {
+            if (loc == null) {
+                fail("현재 위치를 확인하지 못했어요. 위치 권한과 GPS를 확인하세요.");
+                return;
+            }
+            currentLocation = loc;
+            float meters = distanceTo(selected);
+            if (meters > AppConfig.CREATE_ALLOWED_RADIUS_METERS) {
+                fail("내 위치에서 " + (int) AppConfig.CREATE_ALLOWED_RADIUS_METERS
+                        + "m 이내만 작성할 수 있어요. (지금 " + (int) meters + "m)");
+                return;
+            }
+            final List<Uri> toUpload = new ArrayList<>(photos);
+            final double lat = selected.latitude;
+            final double lng = selected.longitude;
+            final double curLat = loc.getLatitude();
+            final double curLng = loc.getLongitude();
+
+            io.execute(() -> {
+                try {
+                    List<String> paths = new ArrayList<>();
+                    for (Uri uri : toUpload) paths.add(uploadOne(uri));
+
+                    Map<String, Object> body = new HashMap<>();
+                    body.put("latitude", lat);
+                    body.put("longitude", lng);
+                    body.put("currentLatitude", curLat);
+                    body.put("currentLongitude", curLng);
+                    body.put("content", text);
+                    body.put("visibility", "PUBLIC");
+                    body.put("photoPaths", paths);
+
+                    Response<Guestbook> res = ApiClient.get().createGuestbook(body).execute();
+                    if (!res.isSuccessful()) throw new IllegalStateException(errorMessage(res));
+
+                    runOnUiThread(() -> {
+                        Toast.makeText(this, "방명록을 남겼어요!", Toast.LENGTH_SHORT).show();
+                        setResult(RESULT_OK);
+                        finish();
+                    });
+                } catch (IllegalStateException e) {
+                    runOnUiThread(() -> fail(e.getMessage()));
+                } catch (Exception e) {
+                    runOnUiThread(() -> fail("서버에 연결할 수 없어요. 인터넷과 서버 주소를 확인하세요."));
+                }
+            });
+        });
+    }
+
+    /** 사진 1장을 줄여서 서버에 올리고, 서버가 알려준 경로를 돌려줍니다. (백그라운드 스레드에서 호출) */
+    private String uploadOne(Uri uri) throws IOException {
+        File file;
+        try {
+            file = ImageCompressor.compress(this, uri);
+        } catch (IOException | RuntimeException e) {
+            throw new IllegalStateException("사진을 처리하지 못했어요.");
+        }
+        try {
+            RequestBody rb = RequestBody.create(MediaType.parse("image/jpeg"), file);
+            MultipartBody.Part part = MultipartBody.Part.createFormData("file", "photo.jpg", rb);
+            Response<Map<String, String>> res = ApiClient.get().uploadPhoto(part, null).execute();
+            if (!res.isSuccessful() || res.body() == null || res.body().get("path") == null) {
+                throw new IllegalStateException(errorMessage(res));
+            }
+            return res.body().get("path");
+        } finally {
+            file.delete();
+        }
+    }
+
+    /** 서버 에러 응답의 message를 꺼냅니다. 없으면 코드만 알려줍니다. */
+    private String errorMessage(Response<?> res) {
+        try {
+            if (res.errorBody() != null) {
+                String msg = new JSONObject(res.errorBody().string()).optString("message", "");
+                if (!msg.isEmpty()) return msg;
+            }
+        } catch (Exception ignored) {
+        }
+        return "서버 오류가 났어요. (코드 " + res.code() + ")";
+    }
+
+    private void setSaving(boolean s) {
+        saving = s;
+        binding.btnSave.setEnabled(!s);
+        if (s) Toast.makeText(this, "저장 중이에요...", Toast.LENGTH_SHORT).show();
+    }
+
+    private void fail(String message) {
+        setSaving(false);
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
     }
 
     // ---------- 위치 ----------
