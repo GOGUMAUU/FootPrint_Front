@@ -1,7 +1,10 @@
 package com.example.footprint.api;
 
+import com.example.footprint.data.model.ApiResponse;
 import com.example.footprint.data.model.Challenge;
 import com.example.footprint.data.model.Guestbook;
+import com.example.footprint.data.model.GuestbookDetail;
+import com.example.footprint.data.model.NearbyGuestbookResponse;
 import com.example.footprint.data.model.UserSummary;
 
 import java.util.List;
@@ -15,45 +18,52 @@ import retrofit2.http.DELETE;
 import retrofit2.http.GET;
 import retrofit2.http.Multipart;
 import retrofit2.http.POST;
+import retrofit2.http.PUT;
 import retrofit2.http.Part;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
 
 public interface ApiService {
-    @retrofit2.http.DELETE("api/guestbooks/{guestbookId}")
-    retrofit2.Call<Void> deleteGuestbook(@retrofit2.http.Path("guestbookId") long guestbookId);
+    @DELETE("api/guestbooks/{guestbookId}")
+    Call<Void> deleteGuestbook(@Path("guestbookId") long guestbookId);
 
-    @retrofit2.http.PUT("api/guestbooks/{guestbookId}")
-    retrofit2.Call<com.example.footprint.data.model.GuestbookDetail> updateGuestbook(
-            @retrofit2.http.Path("guestbookId") long guestbookId,
-            @retrofit2.http.Body java.util.Map<String, Object> body);
-    @retrofit2.http.GET("api/guestbooks/{guestbookId}")
-    retrofit2.Call<com.example.footprint.data.model.GuestbookDetail> getGuestbookDetail(
-            @retrofit2.http.Path("guestbookId") long guestbookId,
-            @retrofit2.http.Query("lat") Double lat,
-            @retrofit2.http.Query("lng") Double lng);
+    @PUT("api/guestbooks/{guestbookId}")
+    Call<GuestbookDetail> updateGuestbook(
+            @Path("guestbookId") long guestbookId,
+            @Body Map<String, Object> body);
+
+    @GET("api/guestbooks/{guestbookId}")
+    Call<GuestbookDetail> getGuestbookDetail(
+            @Path("guestbookId") long guestbookId,
+            @Query("lat") Double lat,
+            @Query("lng") Double lng);
+
     @GET("api/maps/guestbooks/nearby")
-    Call<List<Guestbook>> getNearbyGuestbooks(
-            @Query("lat") double lat,
-            @Query("lng") double lng,
-            @Query("zoom") double zoom,
-            @Query("radiusMeters") double radiusMeters,
-            @Query("ageBand") String ageBand,
-            @Query("recentDays") Integer recentDays,
-            @Query("sort") String sort);
+    Call<ApiResponse<NearbyGuestbookResponse>> getNearbyGuestbooks(
+            @Query("latitude") double latitude,
+            @Query("longitude") double longitude,
+            @Query("zoomLevel") int zoomLevel);
 
     @POST("api/maps/guestbooks/{guestbookId}/check-distance")
-    Call<Map<String, Object>> checkDistance(@Path("guestbookId") String guestbookId,
-                                            @Body Map<String, Double> location);
+    Call<Void> checkDistance(@Path("guestbookId") String guestbookId,
+                        @Body Map<String, Double> location);
 
     @GET("api/maps/guestbooks/bound")
-    Call<List<Guestbook>> getGuestbooksInBounds(@Query("scope") String scope,
-                                                 @Query("userId") String userId,
-                                                 @Query("zoom") double zoom,
-                                                 @Query("south") double south,
-                                                 @Query("west") double west,
-                                                 @Query("north") double north,
-                                                 @Query("east") double east);
+    Call<List<Guestbook>> getGuestbooksInBounds(
+            @Query("scope") String scope,
+            @Query("targetUserId") Long targetUserId,
+            @Query("zoom") double zoom,
+            @Query("southLat") double southLat,
+            @Query("westLng") double westLng,
+            @Query("northLat") double northLat,
+            @Query("eastLng") double eastLng,
+            @Query("period") String period,
+            @Query("ageGroup") String ageGroup,
+            @Query("sort") String sort);
+
+    @GET("api/maps/search")
+    Call<ApiResponse<List>> searchPlaces(
+            @Query("keyword") String keyword);
 
     @GET("api/guestbooks/{guestbookId}")
     Call<Guestbook> getGuestbook(@Path("guestbookId") String guestbookId);
@@ -64,7 +74,7 @@ public interface ApiService {
     @Multipart
     @POST("api/guestbook-photos")
     Call<Map<String, String>> uploadPhoto(@Part MultipartBody.Part file,
-                                          @Part("purpose") RequestBody purpose);
+                      @Part("purpose") RequestBody purpose);
 
     @POST("api/guestbooks/{guestbookId}/likes")
     Call<Void> like(@Path("guestbookId") String guestbookId);
@@ -94,8 +104,8 @@ public interface ApiService {
     Call<List<Challenge>> getChallenges(@Query("lat") double lat, @Query("lng") double lng);
 
     @POST("api/challenges/{challengeId}/verify-location")
-    Call<Map<String, Object>> verifyChallengeLocation(@Path("challengeId") String challengeId,
-                                                       @Body Map<String, Double> location);
+    Call<Void> verifyChallengeLocation(@Path("challengeId") String challengeId,
+                                  @Body Map<String, Double> location);
 
     @POST("api/challenges/{challengeId}/submissions")
     Call<Void> submitChallenge(@Path("challengeId") String challengeId,

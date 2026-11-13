@@ -4,10 +4,12 @@ import com.google.gson.annotations.SerializedName;
 
 public class Guestbook {
     @SerializedName("guestbookId")
-    private Long id; // 또는 guestbookId로 직렬화
+    private Long id;
 
     private Long userId;
-    private String content;
+    private String content;      // /bound 응답용 본문
+    private String title;        // /nearby 응답용 요약 제목
+    private String thumbnailUrl;
     private double latitude;
     private double longitude;
     private String visibility;
@@ -15,26 +17,42 @@ public class Guestbook {
     private String createdAt;
     private String updatedAt;
 
-    // 지도 줌 레벨 표시에 필요한 비즈니스 필드 (서버에서 넘겨주거나 계산)
+    // /nearby 전용 필드
+    private Double distanceMeter;
+    private Boolean isAccessible;
+    private Integer likeCount;
+    private Boolean isClustered;
+    private Integer clusterCount;
+
     private boolean representative;
 
-    // 기본 생성자
     public Guestbook() {}
 
-    // Getter 메서드들
     public Long getId() { return id; }
     public Long getUserId() { return userId; }
     public String getContent() { return content; }
+    public String getTitle() { return title; }
+    public String getThumbnailUrl() { return thumbnailUrl; }
     public double getLatitude() { return latitude; }
     public double getLongitude() { return longitude; }
     public String getVisibility() { return visibility; }
     public String getLocationName() { return locationName; }
     public String getCreatedAt() { return createdAt; }
     public String getUpdatedAt() { return updatedAt; }
-    public boolean isRepresentative() { return representative; }
+    public Double getDistanceMeter() { return distanceMeter; }
+    public boolean isAccessible() { return isAccessible == null || isAccessible; }
+    public int getLikeCount() { return likeCount != null ? likeCount : 0; }
+    public boolean isClustered() { return Boolean.TRUE.equals(isClustered); }
+    public int getClusterCount() { return clusterCount != null ? clusterCount : 1; }
+    public boolean isRepresentative() { return representative || getLikeCount() >= 5; }
 
-    // MainActivity에서 g.shortText 대신 사용할 보조 메서드 (content 반환)
+    // 말풍선 마커에 띄울 텍스트 자동 조합
     public String getShortText() {
-        return content != null ? content : locationName;
+        if (isClustered()) {
+            return (locationName != null ? locationName : "이 지역") + " (+" + getClusterCount() + ")";
+        }
+        if (title != null && !title.isEmpty()) return title;
+        if (content != null && !content.isEmpty()) return content;
+        return locationName != null ? locationName : "방명록";
     }
 }

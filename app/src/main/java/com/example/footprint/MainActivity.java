@@ -9,6 +9,8 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.footprint.data.model.ApiResponse;
+import com.example.footprint.data.model.NearbyGuestbookResponse;
 import com.google.android.gms.location.Priority;
 import com.naver.maps.geometry.LatLngBounds;
 import com.example.footprint.api.ApiClient;
@@ -137,19 +139,71 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private void reloadForCamera() {
         if (naverMap == null) return;
         double zoom = naverMap.getCameraPosition().zoom;
+
         if ("nearby".equals(mode)) {
             if (currentLocation == null) return;
-            // Backend must enforce radius as well; UI restriction alone is not security.
-            ApiClient.get().getNearbyGuestbooks(currentLocation.getLatitude(), currentLocation.getLongitude(), zoom,
-                            AppConfig.NEARBY_MAX_RADIUS_METERS, null, 30, zoom < AppConfig.ZOOM_DETAIL ? "popular" : "latest")
-                    .enqueue(guestbookCallback());
+            ApiClient.get().getNearbyGuestbooks(currentLocation.getLatitude(), currentLocation.getLongitude(), (int) Math.round(zoom)).enqueue(new Callback<ApiResponse<NearbyGuestbookResponse>>() {
+                @Override
+                public void onResponse(@NonNull Call<ApiResponse<NearbyGuestbookResponse>> call,
+                                       @NonNull Response<ApiResponse<NearbyGuestbookResponse>> response) {
+                    if (!response.isSuccessful() || response.body() == null || response.body().getData() == null) return;
+                    renderGuestbooks(response.body().getData().getGuestbooks());
+                }
+
+                @Override
+                public void onFailure(@NonNull Call<ApiResponse<NearbyGuestbookResponse>> call, @NonNull Throwable t) {
+                    Toast.makeText(MainActivity.this, "주변 방명록 조회 실패: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
         } else {
-            com.naver.maps.geometry.LatLngBounds b = naverMap.getContentBounds();
-            ApiClient.get().getGuestbooksInBounds("following".equals(mode) ? "following" : "me", null, zoom,
-                            b.getSouthLatitude(), b.getWestLongitude(), b.getNorthLatitude(), b.getEastLongitude())
-                    .enqueue(guestbookCallback());
+            LatLngBounds b = naverMap.getContentBounds();
+            ApiClient.get().getGuestbooksInBounds(
+                    "following".equals(mode) ? "following" : "me",
+                    null,
+                    zoom,
+                    b.getSouthLatitude(),
+                    b.getWestLongitude(),
+                    b.getNorthLatitude(),
+                    b.getEastLongitude(),
+                    null,
+                    null,
+                    zoom < AppConfig.ZOOM_DETAIL ? "popular" : "latest"
+            ).enqueue(new Callback<List<Guestbook>>() {
+                @Override
+                public void onResponse(@NonNull Call<List<Guestbook>> call, @NonNull Response<List<Guestbook>> response) {
+                    if (!response.isSuccessful() || response.body() == null) return;
+                    renderGuestbooks(response.body());
+                }
+
+                @Override
+                public void onFailure(@NonNull Call<List<Guestbook>> call, @NonNull Throwable t) {
+                    Toast.makeText(MainActivity.this, "영역 방명록 조회 실패: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
         }
     }
+
+    private void renderGuestbooks(List<Guestbook> list) {
+        if (list == null) return;
+        clearMarkers();
+        double zoom = naverMap.getCameraPosition().zoom;
+
+        for (Guestbook g : list) {
+            if (!"nearby".equals(mode) && zoom < AppConfig.ZOOM_REGION && !g.isRepresentative()) {
+                continue;
+            }
+            Marker m = new Marker();
+            m.setPosition(new LatLng(g.getLatitude(), g.getLongitude()));
+            GuestbookMarkerRenderer.apply(MainActivity.this, m, g.getShortText(), g.isRepresentative() || g.isClustered());
+            m.setOnClickListener(overlay -> {
+                openGuestbook(g);
+                return true;
+            });
+            m.setMap(naverMap);
+            markers.add(m);
+        }
+    }
+
 
     private Callback<List<Guestbook>> guestbookCallback() {
         return new Callback<List<Guestbook>>() {
@@ -177,23 +231,24 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     private void openGuestbook(Guestbook g) {
-        if (!"nearby".equals(mode)) {
-            Toast.makeText(this, g.getShortText() == null ? "방명록" : g.getShortText(), Toast.LENGTH_SHORT).show();
+        if (g.isClustered()) {
+            naverMap.moveCamera(CameraUpdate.scrollAndZoomTo(
+                    new LatLng(g.getLatitude(), g.getLongitude()),
+                    naverMap.getCameraPosition().zoom + 2.0
+            ));
             return;
         }
-        if (currentLocation == null) return;
-        java.util.Map<String, Double> body = new java.util.HashMap<>();
-        body.put("lat", currentLocation.getLatitude());
-        body.put("lng", currentLocation.getLongitude());
-        ApiClient.get().checkDistance(String.valueOf(g.getId()), body).enqueue(new Callback<java.util.Map<String, Object>>() {
-            @Override public void onResponse(@NonNull Call<java.util.Map<String, Object>> call, @NonNull Response<java.util.Map<String, Object>> response) {
-                boolean allowed = response.body() != null && Boolean.TRUE.equals(response.body().get("allowed"));
-                Toast.makeText(MainActivity.this, allowed ? (g.getShortText() == null ? "방명록 열림" : g.getShortText()) : "직접 가까이 이동해야 열람할 수 있어요.", Toast.LENGTH_LONG).show();
-            }
-            @Override public void onFailure(@NonNull Call<java.util.Map<String, Object>> call, @NonNull Throwable t) {}
-        });
-    }
 
+        if ("nearby".equals(mode) && !g.isAccessible()) {
+            String distMsg = g.getDistanceMeter() != null
+                    ? String.format(" (현재 거리: %.0fm)", g.getDistanceMeter())
+                    : "";
+            Toast.makeText(this, "직접 가까이 이동해야 열람할 수 있어요." + distMsg, Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        Toast.makeText(this, g.getShortText(), Toast.LENGTH_SHORT).show();
+    }
     private void clearMarkers() { for (Marker m : markers) m.setMap(null); markers.clear(); }
 
     @Override
