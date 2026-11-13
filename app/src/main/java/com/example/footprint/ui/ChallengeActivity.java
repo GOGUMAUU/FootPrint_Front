@@ -74,6 +74,17 @@ public class ChallengeActivity extends AppCompatActivity {
             finish();
         });
 
+// 내 배지 버튼 클릭 시 배지 화면으로 이동
+        binding.btnMyBadges.setOnClickListener(v -> {
+
+            Intent intent = new Intent(
+                    ChallengeActivity.this,
+                    MyBadgesActivity.class
+            );
+
+            startActivity(intent);
+        });
+
         // 필터 버튼 클릭 이벤트
         binding.btnFilterAll.setOnClickListener(v ->
                 selectFilter("all")

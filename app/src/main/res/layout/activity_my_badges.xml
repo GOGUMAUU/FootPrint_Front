@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -69,16 +70,53 @@
         android:paddingBottom="16dp"
         android:clipToPadding="false" />
 
-    <!-- 배지가 없을 때 안내 -->
-    <TextView
-        android:id="@+id/tvEmptyBadges"
+
+    <!-- 배지가 없을 때 표시하는 전체 영역 -->
+    <LinearLayout
+        android:id="@+id/layoutEmptyBadges"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="24dp"
-        android:text="아직 획득한 배지가 없습니다."
-        android:textColor="#888888"
-        android:textSize="14sp"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical"
         android:gravity="center"
-        android:visibility="gone" />
+        android:padding="24dp"
+        android:visibility="gone">
+
+        <!-- 배지 아이콘 -->
+        <ImageView
+            android:id="@+id/ivEmptyBadgeIcon"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:src="@drawable/ic_empty_badge"
+            app:tint="#9CA3AF"
+            android:contentDescription="배지 아이콘" />
+
+
+
+        <!-- 안내 제목 -->
+        <TextView
+            android:id="@+id/tvEmptyBadges"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="아직 획득한 배지가 없습니다"
+            android:textColor="#222222"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:gravity="center" />
+
+        <!-- 상세 안내 -->
+        <TextView
+            android:id="@+id/tvEmptyBadgeDescription"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="도전과제를 완료하고 특별한 배지를 모아보세요!"
+            android:textColor="#888888"
+            android:textSize="13sp"
+            android:gravity="center" />
+
+    </LinearLayout>
+
 
 </LinearLayout>

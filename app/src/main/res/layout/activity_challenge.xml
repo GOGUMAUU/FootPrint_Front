@@ -24,6 +24,22 @@
             android:textSize="22sp"
             android:textStyle="bold" />
 
+        <!-- 내 배지 화면 이동 버튼 -->
+        <TextView
+            android:id="@+id/btnMyBadges"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:layout_marginEnd="8dp"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:gravity="center"
+            android:background="@drawable/bg_filter_normal"
+            android:text="내 배지"
+            android:textColor="#444444"
+            android:textSize="13sp"
+            android:clickable="true"
+            android:focusable="true" />
+
         <ImageButton
             android:id="@+id/btnHome"
             android:layout_width="48dp"
