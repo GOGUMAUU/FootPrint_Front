@@ -9,13 +9,14 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.gms.location.Priority;
+import com.naver.maps.geometry.LatLngBounds;
 import com.example.footprint.api.ApiClient;
 import com.example.footprint.databinding.ActivityMainBinding;
 import com.example.footprint.data.model.Guestbook;
 import com.example.footprint.ui.UserSearchActivity;
 import com.example.footprint.ui.CreateGuestbookActivity;
 import com.example.footprint.ui.ChallengeActivity;
-import com.example.footprint.ui.ProfileMapActivity;
 import com.example.footprint.util.AppConfig;
 import com.example.footprint.util.GuestbookMarkerRenderer;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -78,31 +79,61 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         requestAndLoadLocation();
     }
 
+    // 내 위치 기준 반경 3km  지도 이동,줌 제한
+    private void applyNearby3KmLimit(Location location) {
+        if (naverMap == null || location == null) return;
+        double lat = location.getLatitude();
+        double lng = location.getLongitude();
+        double latOffset = 0.027;
+        double lngOffset = 0.034;
+
+        LatLng southWest = new LatLng(lat - latOffset, lng - lngOffset);
+        LatLng northEast = new LatLng(lat + latOffset, lng + lngOffset);
+
+        naverMap.setExtent(new LatLngBounds(southWest, northEast));
+        naverMap.setMinZoom(12.5);
+    }
+
     private void requestAndLoadLocation() {
-        requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
+        requestPermissions(new String[]{
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+        }, LOCATION_PERMISSION_REQUEST_CODE);
+
         try {
-            fusedClient.getLastLocation().addOnSuccessListener(location -> {
-                if (location != null) {
-                    currentLocation = location;
-                    naverMap.moveCamera(CameraUpdate.scrollAndZoomTo(new LatLng(location.getLatitude(), location.getLongitude()), 14));
-                    reloadForCamera();
-                }
-            });
+            // getLastLocation==null 예외처리
+            fusedClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null)
+                    .addOnSuccessListener(location -> {
+                        if (location != null) {
+                            currentLocation = location;
+                            if ("nearby".equals(mode)) {
+                                applyNearby3KmLimit(location);
+                            }
+                            naverMap.moveCamera(CameraUpdate.scrollAndZoomTo(
+                                    new LatLng(location.getLatitude(), location.getLongitude()), 14.5));
+                            reloadForCamera();
+                        }
+                    });
         } catch (SecurityException ignored) {}
     }
 
     private void switchMode(String nextMode) {
         mode = nextMode;
         clearMarkers();
-        if ("nearby".equals(mode) && currentLocation != null) {
-            naverMap.moveCamera(CameraUpdate.scrollAndZoomTo(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()), 14));
+        if ("nearby".equals(mode)) {
+            if (currentLocation != null) {
+                applyNearby3KmLimit(currentLocation);
+                naverMap.moveCamera(CameraUpdate.scrollAndZoomTo(
+                        new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()), 14.5));
+            }
         } else {
-            // Full-country view is allowed only for my records / people I follow.
+            // me, following  mode zoom 허용
+            naverMap.setExtent(null);
+            naverMap.setMinZoom(5.5);
             naverMap.moveCamera(CameraUpdate.scrollAndZoomTo(new LatLng(36.35, 127.8), 6.5));
         }
         reloadForCamera();
     }
-
     private void reloadForCamera() {
         if (naverMap == null) return;
         double zoom = naverMap.getCameraPosition().zoom;
@@ -165,11 +196,19 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private void clearMarkers() { for (Marker m : markers) m.setMap(null); markers.clear(); }
 
-    @Override public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if (locationSource.onRequestPermissionsResult(requestCode, permissions, grantResults)) return;
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (locationSource.onRequestPermissionsResult(requestCode, permissions, grantResults)) {
+            if (!locationSource.isActivated()) {
+                naverMap.setLocationTrackingMode(LocationTrackingMode.None);
+            } else {
+                naverMap.setLocationTrackingMode(LocationTrackingMode.Follow);
+                requestAndLoadLocation();
+            }
+            return;
+        }
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-    }
-    @Override protected void onStart(){super.onStart();binding.mapView.onStart();}
+    }    @Override protected void onStart(){super.onStart();binding.mapView.onStart();}
     @Override protected void onResume(){super.onResume();binding.mapView.onResume();}
     @Override protected void onPause(){binding.mapView.onPause();super.onPause();}
     @Override protected void onStop(){binding.mapView.onStop();super.onStop();}
