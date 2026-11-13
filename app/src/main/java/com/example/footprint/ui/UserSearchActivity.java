@@ -14,42 +14,39 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class UserSearchActivity extends AppCompatActivity {
-    private ActivityUserSearchBinding binding;
-    private Call<List<UserSummary>> pending;
+    private final android.os.Handler handler = new android.os.Handler(android.os.Looper.getMainLooper());
+    private Runnable debounce;
     @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        binding = ActivityUserSearchBinding.inflate(getLayoutInflater());
+        ActivityUserSearchBinding binding = ActivityUserSearchBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        com.example.footprint.viewmodel.SearchViewModel model = new androidx.lifecycle.ViewModelProvider(this).get(com.example.footprint.viewmodel.SearchViewModel.class);
         binding.recyclerUsers.setLayoutManager(new LinearLayoutManager(this));
-        binding.btnSearch.setOnClickListener(v -> search());
-    }
-    private void search() {
-        String q = binding.etSearch.getText().toString().trim();
-        if (q.isEmpty()) return;
-        if (pending != null) pending.cancel();
-        binding.btnSearch.setEnabled(false);
-        binding.tvPolicy.setText("검색 중…");
-        pending = ApiClient.get().searchUsers(q);
-        pending.enqueue(new Callback<List<UserSummary>>() {
-            @Override public void onResponse(@NonNull Call<List<UserSummary>> call, @NonNull Response<List<UserSummary>> response) {
-                if (isDestroyed() || call != pending) return;
-                binding.btnSearch.setEnabled(true);
-                if (!response.isSuccessful() || response.body() == null) {
-                    binding.tvPolicy.setText("검색에 실패했습니다. 다시 시도해 주세요.");
-                    return;
-                }
-                java.util.List<UserSummary> users = response.body();
-                binding.tvPolicy.setText(users.isEmpty() ? "검색 결과가 없습니다." : users.size() + "명 검색됨");
-                binding.recyclerUsers.setAdapter(new UserRows(users));
+        binding.searchType.setAdapter(new android.widget.ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, new String[]{"닉네임", "친구 코드"}));
+        Runnable search = () -> model.search(binding.etSearch.getText().toString(), binding.searchType.getSelectedItemPosition() == 0 ? "NICKNAME" : "USER_CODE");
+        binding.btnSearch.setOnClickListener(v -> { handler.removeCallbacksAndMessages(null); search.run(); });
+        binding.btnMore.setOnClickListener(v -> model.more());
+        binding.etSearch.addTextChangedListener(new android.text.TextWatcher() {
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (debounce != null) handler.removeCallbacks(debounce);
+                debounce = search; handler.postDelayed(debounce, 350);
             }
-            @Override public void onFailure(@NonNull Call<List<UserSummary>> call, @NonNull Throwable t) {
-                if (isDestroyed() || call.isCanceled() || call != pending) return;
-                binding.btnSearch.setEnabled(true);
-                binding.tvPolicy.setText("네트워크 연결을 확인하고 다시 검색해 주세요.");
-            }
+            public void afterTextChanged(android.text.Editable s) {}
+        });
+        binding.searchType.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
+            public void onItemSelected(android.widget.AdapterView<?> parent, android.view.View view, int position, long id) { handler.removeCallbacksAndMessages(null); search.run(); }
+            public void onNothingSelected(android.widget.AdapterView<?> parent) {}
+        });
+        model.state().observe(this, state -> {
+            binding.recyclerUsers.setAdapter(new UserRows(state.users));
+            binding.btnSearch.setEnabled(!state.loading);
+            binding.btnMore.setEnabled(!state.loading && state.hasNext);
+            binding.btnMore.setVisibility(state.hasNext ? android.view.View.VISIBLE : android.view.View.GONE);
+            binding.tvPolicy.setText((model.isMock() ? "개발용 Mock · 산책친구 또는 FP00000001로 검색\n" : "") + state.message);
         });
     }
-    @Override protected void onDestroy() { if (pending != null) pending.cancel(); super.onDestroy(); }
+    @Override protected void onDestroy() { handler.removeCallbacksAndMessages(null); super.onDestroy(); }
     private static final class UserRows extends androidx.recyclerview.widget.RecyclerView.Adapter<UserRows.Holder> {
         private final List<UserSummary> users;
         UserRows(List<UserSummary> users) { this.users = users; }
@@ -65,7 +62,10 @@ public class UserSearchActivity extends AppCompatActivity {
         }
         @Override public void onBindViewHolder(Holder holder, int position) {
             UserSummary user = users.get(position);
-            ((android.widget.TextView) holder.itemView).setText(user.nickname + "\n" + user.userCode);
+            ((android.widget.TextView) holder.itemView).setText(user.nickname + "\n" + user.friendCode);
+            holder.itemView.setOnClickListener(v -> {
+                if (user.userId != null) v.getContext().startActivity(new android.content.Intent(v.getContext(), UserProfileActivity.class).putExtra("userId", user.userId.longValue()));
+            });
         }
         @Override public int getItemCount() { return users.size(); }
     }

@@ -94,9 +94,10 @@ public interface ApiService {
     Call<Void> report(@Path("guestbookId") String guestbookId, @Body Map<String, String> body);
 
     @GET("api/users/search")
-    Call<List<UserSummary>> searchUsers(@Query("q") String query);
+    Call<com.example.footprint.data.model.UserPage> searchUsers(@Query("q") String query,
+            @Query("type") String type, @Query("page") int page, @Query("size") int size);
 
-    @POST("api/users/{userId}/follow-requests")
+    @POST("api/follows/{userId}")
     Call<Void> requestFollow(@Path("userId") String userId);
 
     @POST("api/follow-requests/{followId}/accept")

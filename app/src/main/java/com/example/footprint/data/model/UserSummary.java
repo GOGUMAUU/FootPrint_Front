@@ -1,9 +1,9 @@
 package com.example.footprint.data.model;
 
 public class UserSummary {
-    public String id;
+    public Long userId;
     public String nickname;
-    public String userCode;
+    public String friendCode;
     public String profileImageUrl;
     public boolean following;
 }

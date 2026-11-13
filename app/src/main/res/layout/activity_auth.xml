@@ -8,6 +8,7 @@
         <CheckBox android:id="@+id/showPassword" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="비밀번호 표시" android:saveEnabled="false" />
         <EditText android:id="@+id/nickname" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="닉네임" android:inputType="textPersonName" />
         <CheckBox android:id="@+id/terms" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="필수 약관 동의 (약관 내용 확인 필요)" />
+        <Button android:id="@+id/readTerms" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="약관 열람 / 다시 불러오기" />
         <CheckBox android:id="@+id/marketing" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="선택: 마케팅 수신 동의" />
         <TextView android:id="@+id/error" android:layout_width="match_parent" android:layout_height="wrap_content" android:accessibilityLiveRegion="polite" />
         <ProgressBar android:id="@+id/progress" android:layout_width="wrap_content" android:layout_height="wrap_content" android:visibility="gone" />

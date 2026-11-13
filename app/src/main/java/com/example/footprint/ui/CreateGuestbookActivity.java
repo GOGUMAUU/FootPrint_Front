@@ -355,15 +355,19 @@ public class CreateGuestbookActivity extends AppCompatActivity {
     }
 
     private void requestLocation() {
+        if (!com.example.footprint.security.Session.signedIn(this)) { com.example.footprint.security.Session.login(this); return; }
+        if (!com.example.footprint.security.Session.locationConsent) { LocationConsent.request(this, this::requestLocation); return; }
         if (hasLocationPermission()) { loadCurrentLocation(null); return; }
         locationPermission.launch(new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION});
     }
 
     private void loadCurrentLocation(Consumer<Location> done) {
+        if (!com.example.footprint.security.Session.signedIn(this) || !com.example.footprint.security.Session.locationConsent) { if (done != null) done.accept(null); return; }
         if (!hasLocationPermission()) { if (done != null) done.accept(null); return; }
         try {
             fusedClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, new CancellationTokenSource().getToken())
                     .addOnSuccessListener(loc -> {
+                        if (!com.example.footprint.security.Session.signedIn(this) || !com.example.footprint.security.Session.locationConsent) return;
                         if (loc != null) { currentLocation = loc; showMyLocationOnMap(); }
                         if (done != null) done.accept(loc);
                     })

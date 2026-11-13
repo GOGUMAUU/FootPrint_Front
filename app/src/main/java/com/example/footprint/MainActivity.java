@@ -72,13 +72,45 @@ public class MainActivity extends AppCompatActivity {
         map.setOnCameraIdleListener((center, zoom) -> scheduleReloadForCamera());
         map.start(() -> switchMode("nearby"));
 
-        binding.fabCreate.setOnClickListener(v -> startActivity(new Intent(this, CreateGuestbookActivity.class)));
+        binding.fabCreate.setOnClickListener(v -> com.example.footprint.ui.LocationConsent.request(this, () -> startActivity(new Intent(this, CreateGuestbookActivity.class))));
         binding.btnUsers.setOnClickListener(v -> startActivity(new Intent(this, UserSearchActivity.class)));
         android.widget.Button accountButton = new android.widget.Button(this);
-        accountButton.setText("로그인 / 회원가입");
+        accountButton.setText("로그아웃");
         ((android.widget.LinearLayout) binding.btnUsers.getParent()).addView(accountButton);
-        accountButton.setOnClickListener(v -> startActivity(new Intent(this, com.example.footprint.ui.LoginActivity.class)));
-        binding.btnChallenges.setOnClickListener(v -> startActivity(new Intent(this, ChallengeActivity.class)));
+        accountButton.setOnClickListener(v -> new androidx.appcompat.app.AlertDialog.Builder(this).setMessage("로그아웃할까요?").setNegativeButton("취소", null).setPositiveButton("로그아웃", (d,w) -> com.example.footprint.security.Session.logout(this)).show());
+        android.widget.Button profileButton = new android.widget.Button(this);
+        profileButton.setText("마이페이지");
+        ((android.widget.LinearLayout) binding.btnUsers.getParent()).addView(profileButton);
+        profileButton.setOnClickListener(v -> startActivity(new Intent(this, com.example.footprint.ui.UserProfileActivity.class)));
+        android.widget.Button locationPolicyButton = new android.widget.Button(this);
+        locationPolicyButton.setText("위치 동의 관리");
+        ((android.widget.LinearLayout) binding.btnUsers.getParent()).addView(locationPolicyButton);
+        locationPolicyButton.setOnClickListener(v -> {
+            if (!com.example.footprint.security.Session.locationConsent) { com.example.footprint.ui.LocationConsent.request(this, this::ensureLocationPermissionAndLoad); return; }
+            new androidx.appcompat.app.AlertDialog.Builder(this).setMessage("위치 동의를 철회하고 위치 기능을 중지할까요?")
+                    .setNegativeButton("취소", null).setPositiveButton("철회", (d,w) -> {
+                        Runnable stop = () -> {
+                            com.example.footprint.security.Session.locationConsent = false;
+                            currentLocation = null; map.clearGuestbooks();
+                            stopLocationUpdates(); map.hideMyLocation(); map.clearRadiusLimit();
+                        };
+                        if (com.example.footprint.data.repository.ProfileRepository.mock()) { stop.run(); return; }
+                        locationPolicyButton.setEnabled(false);
+                        ApiClient.create(com.example.footprint.api.PolicyApi.class).revoke("LOCATION").enqueue(new Callback<Void>() {
+                            public void onResponse(Call<Void> c, Response<Void> r) {
+                                if (isDestroyed()) return;
+                                locationPolicyButton.setEnabled(true);
+                                if (r.isSuccessful()) stop.run(); else Toast.makeText(MainActivity.this, "철회 실패. 다시 시도해 주세요.", Toast.LENGTH_LONG).show();
+                            }
+                            public void onFailure(Call<Void> c, Throwable t) {
+                                if (isDestroyed()) return;
+                                locationPolicyButton.setEnabled(true);
+                                Toast.makeText(MainActivity.this, "철회 결과를 확인하지 못했습니다.", Toast.LENGTH_LONG).show();
+                            }
+                        });
+                    }).show();
+        });
+        binding.btnChallenges.setOnClickListener(v -> com.example.footprint.ui.LocationConsent.request(this, () -> startActivity(new Intent(this, ChallengeActivity.class))));
         binding.btnNearby.setOnClickListener(v -> switchMode("nearby"));
         binding.btnFollowing.setOnClickListener(v -> switchMode("following"));
         binding.btnMyMap.setOnClickListener(v -> switchMode("me"));
@@ -151,6 +183,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void ensureLocationPermissionAndLoad() {
+        if (!com.example.footprint.security.Session.signedIn(this)) return;
+        if (!com.example.footprint.security.Session.locationConsent) { com.example.footprint.ui.LocationConsent.request(this, this::ensureLocationPermissionAndLoad); return; }
         if (!hasLocationPermission()) {
             requestPermissions(new String[]{
                     Manifest.permission.ACCESS_FINE_LOCATION,
@@ -162,7 +196,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void startLocationUpdates() {
-        if (requestingUpdates || !hasLocationPermission()) return;
+        if (requestingUpdates || !hasLocationPermission() || !com.example.footprint.security.Session.signedIn(this) || !com.example.footprint.security.Session.locationConsent) return;
 
         LocationRequest request = new LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 5000L)
                 .setMinUpdateIntervalMillis(2000L)
@@ -192,6 +226,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void onNewLocation(Location loc) {
+        if (!com.example.footprint.security.Session.signedIn(this) || !com.example.footprint.security.Session.locationConsent) return;
         boolean firstFix = (currentLocation == null);
         currentLocation = loc;
         map.showMyLocation(loc);
@@ -222,7 +257,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void reloadForCamera() {
-        if (!map.isReady()) return;
+        if (!map.isReady() || !com.example.footprint.security.Session.signedIn(this) || !com.example.footprint.security.Session.locationConsent) return;
         final long requestVersion = ++reloadRequestVersion;
         final int zoom = map.getZoomLevel();
 
