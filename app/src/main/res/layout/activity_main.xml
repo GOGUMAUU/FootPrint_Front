@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:id="@+id/main">
 
-    <com.naver.maps.map.MapView
+    <com.kakao.vectormap.MapView
         android:id="@+id/mapView"
         android:layout_width="0dp"
         android:layout_height="0dp"
