@@ -66,6 +66,13 @@ public class UserSearchActivity extends AppCompatActivity {
         @Override public void onBindViewHolder(Holder holder, int position) {
             UserSummary user = users.get(position);
             ((android.widget.TextView) holder.itemView).setText(user.nickname + "\n" + user.userCode);
+            holder.itemView.setOnClickListener(v -> {
+                android.content.Intent intent = new android.content.Intent(v.getContext(), ProfileMapActivity.class);
+                // UserSummary의 PK 필드명이 id라면 user.id로 맞춰주세요
+                intent.putExtra("TARGET_USER_ID", user.id);
+                intent.putExtra("TARGET_USER_NICKNAME", user.nickname);
+                v.getContext().startActivity(intent);
+            });
         }
         @Override public int getItemCount() { return users.size(); }
     }
