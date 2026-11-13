@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:id="@+id/main">
 
-    <com.naver.maps.map.MapView
+    <com.kakao.vectormap.MapView
         android:id="@+id/mapView"
         android:layout_width="0dp"
         android:layout_height="0dp"
@@ -31,6 +31,7 @@
             <Button android:id="@+id/btnNearby" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="주변" />
             <Button android:id="@+id/btnFollowing" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="팔로잉 지도" />
             <Button android:id="@+id/btnMyMap" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="내 지도" />
+            <Button android:id="@+id/btnSort" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="거리순" />
             <Button android:id="@+id/btnFilter" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="필터" />
             <Button android:id="@+id/btnUsers" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="사용자 찾기" />
             <Button android:id="@+id/btnChallenges" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="도전과제" />

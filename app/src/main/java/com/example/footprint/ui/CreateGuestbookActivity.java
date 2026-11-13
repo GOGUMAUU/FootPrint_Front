@@ -1,65 +1,75 @@
 package com.example.footprint.ui;
 
-import android.net.Uri;
-import android.os.Bundle;
-import android.widget.Toast;
-
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-
-import com.example.footprint.databinding.ActivityCreateGuestbookBinding;
-import com.naver.maps.geometry.LatLng;
-import com.naver.maps.map.NaverMap;
-import com.naver.maps.map.OnMapReadyCallback;
-import com.naver.maps.map.overlay.Marker;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.location.Location;
-import androidx.core.content.ContextCompat;
-import com.example.footprint.util.AppConfig;
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.location.Priority;
-import com.google.android.gms.tasks.CancellationTokenSource;
-import com.naver.maps.map.CameraUpdate;
-import com.naver.maps.map.overlay.CircleOverlay;
-import java.util.Locale;
-import java.util.function.Consumer;
+import android.net.Uri;
+import android.os.Bundle;
 import android.view.Gravity;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.PickVisualMediaRequest;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
+
 import com.bumptech.glide.Glide;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 import com.example.footprint.api.ApiClient;
 import com.example.footprint.data.model.Guestbook;
+import com.example.footprint.databinding.ActivityCreateGuestbookBinding;
+import com.example.footprint.util.AppConfig;
 import com.example.footprint.util.ImageCompressor;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.Priority;
+import com.google.android.gms.tasks.CancellationTokenSource;
+import com.kakao.vectormap.KakaoMap;
+import com.kakao.vectormap.KakaoMapReadyCallback;
+import com.kakao.vectormap.LatLng;
+import com.kakao.vectormap.MapLifeCycleCallback;
+import com.kakao.vectormap.camera.CameraUpdateFactory;
+import com.kakao.vectormap.label.Label;
+import com.kakao.vectormap.label.LabelLayer;
+import com.kakao.vectormap.label.LabelOptions;
+import com.kakao.vectormap.shape.DotPoints;
+import com.kakao.vectormap.shape.Polygon;
+import com.kakao.vectormap.shape.PolygonOptions;
+import com.kakao.vectormap.shape.ShapeLayer;
+
+import org.json.JSONObject;
+
+import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.Consumer;
+
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
-import org.json.JSONObject;
 import retrofit2.Response;
 
-public class CreateGuestbookActivity extends AppCompatActivity implements OnMapReadyCallback {
+public class CreateGuestbookActivity extends AppCompatActivity {
     private ActivityCreateGuestbookBinding binding;
-    private NaverMap naverMap;
-    private Marker selectedMarker;
+    private KakaoMap kakaoMap;
+    private LabelLayer labelLayer;
+    private ShapeLayer shapeLayer;
+    private Label selectedMarker;
     private LatLng selected;
     private Location currentLocation;
-    private CircleOverlay allowedCircle;
+    private Polygon allowedCircle;
     private boolean cameraMoved;
     private FusedLocationProviderClient fusedClient;
     private final ActivityResultLauncher<String[]> locationPermission = registerForActivityResult(
@@ -87,12 +97,28 @@ public class CreateGuestbookActivity extends AppCompatActivity implements OnMapR
                 }
             });
 
-    @Override protected void onCreate(Bundle savedInstanceState) {
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = ActivityCreateGuestbookBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-        binding.createMapView.onCreate(savedInstanceState);
-        binding.createMapView.getMapAsync(this);
+
+        binding.createMapView.start(new MapLifeCycleCallback() {
+            @Override
+            public void onMapDestroy() {
+            }
+
+            @Override
+            public void onMapError(Exception error) {
+                Toast.makeText(CreateGuestbookActivity.this, "지도 초기화 실패: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        }, new KakaoMapReadyCallback() {
+            @Override
+            public void onMapReady(KakaoMap map) {
+                onKakaoMapReady(map);
+            }
+        });
+
         binding.btnPickPhoto.setOnClickListener(v -> {
             if (photos.size() >= MAX_PHOTOS) {
                 Toast.makeText(this, "사진은 최대 " + MAX_PHOTOS + "장까지예요.", Toast.LENGTH_SHORT).show();
@@ -108,10 +134,13 @@ public class CreateGuestbookActivity extends AppCompatActivity implements OnMapR
         requestLocation();
     }
 
-    @Override public void onMapReady(@NonNull NaverMap map) {
-        naverMap = map;
+    private void onKakaoMapReady(KakaoMap map) {
+        kakaoMap = map;
+        labelLayer = map.getLabelManager().getLayer();
+        shapeLayer = map.getShapeManager().getLayer();
         showMyLocationOnMap();
-        map.setOnMapClickListener((point, coord) -> {
+
+        map.setOnMapClickListener((clickedMap, coord, screenPoint, poi) -> {
             if (currentLocation == null) {
                 Toast.makeText(this, "내 위치를 확인하는 중이에요. 잠시 후 다시 눌러주세요.", Toast.LENGTH_SHORT).show();
                 requestLocation();
@@ -125,12 +154,16 @@ public class CreateGuestbookActivity extends AppCompatActivity implements OnMapR
             }
 
             selected = coord;
-            if (selectedMarker == null) selectedMarker = new Marker();
-            selectedMarker.setPosition(coord);
-            selectedMarker.setMap(naverMap);
-            binding.tvSelectedLocation.setText(String.format(Locale.KOREA, "선택 위치: %.5f, %.5f (내 위치에서 %dm)",
-                    coord.latitude, coord.longitude, (int) meters));
+            if (selectedMarker == null) {
+                selectedMarker = labelLayer.addLabel(
+                        LabelOptions.from("selected-point", coord)
+                );
+            } else {
+                selectedMarker.moveTo(coord);
+            }
 
+            binding.tvSelectedLocation.setText(String.format(Locale.KOREA, "선택 위치: %.5f, %.5f (내 위치에서 %dm)",
+                    coord.getLatitude(), coord.getLongitude(), (int) meters));
         });
     }
 
@@ -141,7 +174,7 @@ public class CreateGuestbookActivity extends AppCompatActivity implements OnMapR
         if (text.isEmpty()) { Toast.makeText(this, "짧은 글을 입력하세요.", Toast.LENGTH_SHORT).show(); return; }
         submit(text);
     }
-    // ---------- 사진 ----------
+
     private void openCamera() {
         if (photos.size() >= MAX_PHOTOS) {
             Toast.makeText(this, "사진은 최대 " + MAX_PHOTOS + "장까지예요.", Toast.LENGTH_SHORT).show();
@@ -154,7 +187,6 @@ public class CreateGuestbookActivity extends AppCompatActivity implements OnMapR
         takePhoto.launch(cameraUri);
     }
 
-    /** photos 목록을 썸네일로 다시 그리고 "사진 n/3" 문구를 갱신합니다. */
     private void renderPhotos() {
         binding.photoContainer.removeAllViews();
         float d = getResources().getDisplayMetrics().density;
@@ -185,8 +217,7 @@ public class CreateGuestbookActivity extends AppCompatActivity implements OnMapR
         }
         binding.tvPhotoCount.setText("사진 " + photos.size() + "/" + MAX_PHOTOS);
     }
-    // ---------- 저장 ----------
-    /** 현재 위치를 다시 확인 → 사진 압축·업로드 → 방명록 저장. */
+
     private void submit(String text) {
         if (saving) return;
         setSaving(true);
@@ -203,8 +234,8 @@ public class CreateGuestbookActivity extends AppCompatActivity implements OnMapR
                 return;
             }
             final List<Uri> toUpload = new ArrayList<>(photos);
-            final double lat = selected.latitude;
-            final double lng = selected.longitude;
+            final double lat = selected.getLatitude();
+            final double lng = selected.getLongitude();
             final double curLat = loc.getLatitude();
             final double curLng = loc.getLongitude();
             final boolean isPrivate = binding.rbPrivate.isChecked();
@@ -240,7 +271,6 @@ public class CreateGuestbookActivity extends AppCompatActivity implements OnMapR
         });
     }
 
-    /** 사진 1장을 줄여서 서버에 올리고, 서버가 알려준 경로를 돌려줍니다. (백그라운드 스레드에서 호출) */
     private String uploadOne(Uri uri) throws IOException {
         File file;
         try {
@@ -261,7 +291,6 @@ public class CreateGuestbookActivity extends AppCompatActivity implements OnMapR
         }
     }
 
-    /** 서버 에러 응답의 message를 꺼냅니다. 없으면 코드만 알려줍니다. */
     private String errorMessage(Response<?> res) {
         try {
             if (res.errorBody() != null) {
@@ -284,7 +313,6 @@ public class CreateGuestbookActivity extends AppCompatActivity implements OnMapR
         Toast.makeText(this, message, Toast.LENGTH_LONG).show();
     }
 
-    // ---------- 위치 ----------
     private boolean hasLocationPermission() {
         return ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
                 || ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED;
@@ -295,7 +323,6 @@ public class CreateGuestbookActivity extends AppCompatActivity implements OnMapR
         locationPermission.launch(new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION});
     }
 
-    /** 현재 위치를 읽어 currentLocation에 저장합니다. 끝나면 done에 결과(실패 시 null)를 전달합니다. */
     private void loadCurrentLocation(Consumer<Location> done) {
         if (!hasLocationPermission()) { if (done != null) done.accept(null); return; }
         try {
@@ -312,34 +339,28 @@ public class CreateGuestbookActivity extends AppCompatActivity implements OnMapR
 
     private float distanceTo(LatLng p) {
         float[] r = new float[1];
-        Location.distanceBetween(currentLocation.getLatitude(), currentLocation.getLongitude(), p.latitude, p.longitude, r);
+        Location.distanceBetween(currentLocation.getLatitude(), currentLocation.getLongitude(), p.getLatitude(), p.getLongitude(), r);
         return r[0];
     }
 
-    /** 내 위치 주변의 선택 가능 범위를 원으로 표시하고, 처음 한 번만 그 위치로 카메라를 옮깁니다. */
     private void showMyLocationOnMap() {
-        if (naverMap == null || currentLocation == null) return;
-        LatLng me = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
-        if (allowedCircle == null) {
-            allowedCircle = new CircleOverlay();
-            allowedCircle.setColor(0x222457E6);
-            allowedCircle.setOutlineColor(0xFF2457E6);
-            allowedCircle.setOutlineWidth(3);
+        if (kakaoMap == null || currentLocation == null || shapeLayer == null) return;
+        LatLng me = LatLng.from(currentLocation.getLatitude(), currentLocation.getLongitude());
+        if (allowedCircle != null) {
+            shapeLayer.remove(allowedCircle);
         }
-        allowedCircle.setCenter(me);
-        allowedCircle.setRadius(AppConfig.CREATE_ALLOWED_RADIUS_METERS);
-        allowedCircle.setMap(naverMap);
+        allowedCircle = shapeLayer.addPolygon(
+                PolygonOptions.from(DotPoints.fromCircle(me, (float) AppConfig.CREATE_ALLOWED_RADIUS_METERS), 0x222457E6)
+        );
         if (!cameraMoved) {
             cameraMoved = true;
-            naverMap.moveCamera(CameraUpdate.scrollAndZoomTo(me, 16));
+            kakaoMap.moveCamera(CameraUpdateFactory.newCenterPosition(me, 16));
         }
     }
 
-    @Override protected void onStart(){super.onStart();binding.createMapView.onStart();}
-    @Override protected void onResume(){super.onResume();binding.createMapView.onResume();}
-    @Override protected void onPause(){binding.createMapView.onPause();super.onPause();}
-    @Override protected void onStop(){binding.createMapView.onStop();super.onStop();}
-    @Override protected void onDestroy(){binding.createMapView.onDestroy();super.onDestroy();}
-    @Override public void onLowMemory(){super.onLowMemory();binding.createMapView.onLowMemory();}
-    @Override protected void onSaveInstanceState(@NonNull Bundle outState){super.onSaveInstanceState(outState);binding.createMapView.onSaveInstanceState(outState);}
+    @Override
+    protected void onDestroy() {
+        io.shutdownNow();
+        super.onDestroy();
+    }
 }

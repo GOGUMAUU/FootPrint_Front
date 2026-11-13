@@ -10,7 +10,7 @@ val localPropertiesFile = rootProject.file("local.properties")
 if (localPropertiesFile.exists()) {
     localPropertiesFile.inputStream().use { localProperties.load(it) }
 }
-val naverMapClientId: String = localProperties.getProperty("NAVER_MAP_CLIENT_ID", "YOUR_NCP_KEY_ID_HERE")
+val kakaoNativeAppKey: String = localProperties.getProperty("KAKAO_NATIVE_APP_KEY", "YOUR_KAKAO_NATIVE_APP_KEY_HERE")
 var apiBaseUrl: String = localProperties.getProperty("API_BASE_URL", "https://example.com/")
 if (!apiBaseUrl.endsWith("/")) {
     apiBaseUrl += "/"
@@ -33,7 +33,7 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
-        manifestPlaceholders["NAVER_MAP_CLIENT_ID"] = naverMapClientId
+        buildConfigField("String", "KAKAO_NATIVE_APP_KEY", "\"$kakaoNativeAppKey\"")
     }
 
     buildTypes {
@@ -74,6 +74,6 @@ dependencies {
     // Coroutines (비동기 처리)
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
 
-    implementation("com.naver.maps:map-sdk:3.24.0")
+    implementation("com.kakao.maps.open:android:2.15.2")
     implementation("com.github.bumptech.glide:glide:4.16.0")
 }
