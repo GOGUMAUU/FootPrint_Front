@@ -133,7 +133,8 @@ public class GuestbookDetailDialog extends DialogFragment {
         binding.tvError.setVisibility(View.GONE);
         binding.content.setVisibility(View.VISIBLE);
         binding.tvContent.setText(d.content);
-        String meta = "- " + (d.nickname == null ? "" : d.nickname) + " · " + formatDate(d.createdAt);
+        binding.tvTitle.setText(d.nickname == null || d.nickname.isEmpty() ? "방명록" : d.nickname + "의 방명록");
+        String meta = formatDate(d.createdAt);
         if (d.locationName != null && !d.locationName.isEmpty()) meta += " · " + d.locationName;
         binding.tvMeta.setText(meta);
         renderPhotos(d.photoUrls);
@@ -164,7 +165,7 @@ public class GuestbookDetailDialog extends DialogFragment {
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(w, h);
             lp.setMarginEnd((int) (8 * d));
             img.setLayoutParams(lp);
-            Glide.with(this).load(fullUrl(path))
+            Glide.with(this).load(com.example.footprint.util.AuthImage.of(requireContext(), fullUrl(path)))
                     .transform(new CenterCrop(), new RoundedCorners(radius))
                     .into(img);
             binding.photoContainer.addView(img);

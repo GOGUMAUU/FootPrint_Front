@@ -238,6 +238,7 @@ public class CreateGuestbookActivity extends AppCompatActivity {
             final double lng = selected.getLongitude();
             final double curLat = loc.getLatitude();
             final double curLng = loc.getLongitude();
+            final boolean isPrivate = binding.rbPrivate.isChecked();
 
             io.execute(() -> {
                 try {
@@ -250,7 +251,7 @@ public class CreateGuestbookActivity extends AppCompatActivity {
                     body.put("currentLatitude", curLat);
                     body.put("currentLongitude", curLng);
                     body.put("content", text);
-                    body.put("visibility", "PUBLIC");
+                    body.put("visibility", isPrivate ? "PRIVATE" : "PUBLIC");
                     body.put("photoPaths", paths);
 
                     Response<Guestbook> res = ApiClient.get().createGuestbook(body).execute();
