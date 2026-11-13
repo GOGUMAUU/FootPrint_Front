@@ -18,6 +18,7 @@
         <meta-data
             android:name="com.naver.maps.map.NCP_KEY_ID"
             android:value="${NAVER_MAP_CLIENT_ID}" />
+        <activity android:name=".ui.ChallengeDetailActivity" android:exported="false" />
         <activity android:name=".ui.ChallengeActivity" />
         <activity android:name=".ui.LoginActivity" android:exported="false" />
         <activity android:name=".ui.SignupActivity" android:exported="false" />
