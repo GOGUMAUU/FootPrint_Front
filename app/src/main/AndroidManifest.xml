@@ -17,6 +17,9 @@
         android:theme="@style/Theme.FootPrint">
         <activity android:name=".ui.ChallengeActivity" />
         <activity android:name=".ui.LoginActivity" android:exported="false" />
+        <activity android:name=".ui.UserProfileActivity" android:exported="false" />
+        <activity android:name=".ui.AccountSettingsActivity" android:exported="false" />
+        <activity android:name=".ui.RelationListActivity" android:exported="false" />
         <activity android:name=".ui.SignupActivity" android:exported="false" />
         <activity android:name=".ui.UserSearchActivity" />
         <activity android:name=".ui.ProfileMapActivity" />

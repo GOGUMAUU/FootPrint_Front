@@ -20,13 +20,13 @@ public final class AuthViewModel extends AndroidViewModel {
     private Call<?> pending;
     public AuthViewModel(Application application) { super(application); repository = new AuthRepository(new TokenManager(application)); }
     public LiveData<State> state() { return state; }
-    public void submit(boolean signup, String email, String password, String confirmation, String nickname, boolean terms, boolean marketing) {
+    public void submit(boolean signup, String email, String password, String confirmation, String nickname, boolean terms, java.util.List<com.example.footprint.data.model.Policy.Consent> consents) {
         if (state.getValue().loading) return;
         String error = AuthValidation.validate(email, password, confirmation, nickname, terms, signup);
         if (error != null) { state.setValue(new State(false, false, error)); return; }
         state.setValue(new State(true, false, null));
         AuthRepository.Result result = message -> state.setValue(new State(false, message == null, message));
-        pending = signup ? repository.signup(email, password, nickname, marketing, result) : repository.login(email, password, result);
+        pending = signup ? repository.signup(email, password, nickname, consents, result) : repository.login(email, password, result);
     }
     public void consumeSuccess() { state.setValue(new State(false, false, null)); }
     @Override protected void onCleared() { if (pending != null) pending.cancel(); }

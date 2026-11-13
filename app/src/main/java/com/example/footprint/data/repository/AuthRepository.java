@@ -13,12 +13,25 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public final class AuthRepository {
+    private static final Map<String, String> mockAccounts = new HashMap<>();
+    private static String mockEmail;
+    public static String changeMockPassword(String current, String next) {
+        if (mockEmail == null || !current.equals(mockAccounts.get(mockEmail))) return "현재 비밀번호가 일치하지 않습니다.";
+        mockAccounts.put(mockEmail, next); return null;
+    }
+    public static void deleteMockAccount() { mockAccounts.remove(mockEmail); ProfileRepository.delete(mockEmail); MockRelations.delete(mockEmail); mockEmail = null; }
+    static { mockAccounts.put("demo@example.com", "footprint-demo-2026"); }
     public interface Result { void complete(String error); }
     private final TokenManager store;
     private final AuthApi api = new Retrofit.Builder().baseUrl(BuildConfig.API_BASE_URL)
             .addConverterFactory(GsonConverterFactory.create()).build().create(AuthApi.class);
     public AuthRepository(TokenManager store) { this.store = store; }
     public Call<?> login(String email, String password, Result result) {
+        if (ProfileRepository.mock()) {
+            if (!password.equals(mockAccounts.get(email))) result.complete("이메일 또는 비밀번호를 확인해 주세요.");
+            else { mockEmail = email; ProfileRepository.select(email); MockRelations.select(email); com.example.footprint.security.Session.mockLogin(); result.complete(null); }
+            return null;
+        }
         Map<String, String> body = new HashMap<>();
         body.put("email", email); body.put("password", password);
         Call<AuthTokens> call = api.login(body);
@@ -33,10 +46,15 @@ public final class AuthRepository {
         });
         return call;
     }
-    public Call<?> signup(String email, String password, String nickname, boolean marketing, Result result) {
+    public Call<?> signup(String email, String password, String nickname, java.util.List<com.example.footprint.data.model.Policy.Consent> consents, Result result) {
+        if (ProfileRepository.mock()) {
+            if (mockAccounts.containsKey(email)) result.complete("이미 가입된 이메일입니다.");
+            else { mockAccounts.put(email, password); ProfileRepository.register(email,nickname); result.complete(null); }
+            return null;
+        }
         Map<String, Object> body = new HashMap<>();
         body.put("email", email); body.put("password", password); body.put("nickname", nickname);
-        body.put("consents", java.util.Collections.emptyList());
+        body.put("consents", consents);
         Call<Void> call = api.signup(body);
         call.enqueue(new Callback<Void>() {
             @Override public void onResponse(Call<Void> c, Response<Void> r) { result.complete(r.isSuccessful() ? null : error(r.code())); }
