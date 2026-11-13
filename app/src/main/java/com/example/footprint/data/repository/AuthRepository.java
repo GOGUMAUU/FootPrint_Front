@@ -36,7 +36,7 @@ public final class AuthRepository {
     public Call<?> signup(String email, String password, String nickname, boolean marketing, Result result) {
         Map<String, Object> body = new HashMap<>();
         body.put("email", email); body.put("password", password); body.put("nickname", nickname);
-        body.put("termsAccepted", true); body.put("marketingAccepted", marketing);
+        body.put("consents", java.util.Collections.emptyList());
         Call<Void> call = api.signup(body);
         call.enqueue(new Callback<Void>() {
             @Override public void onResponse(Call<Void> c, Response<Void> r) { result.complete(r.isSuccessful() ? null : error(r.code())); }
