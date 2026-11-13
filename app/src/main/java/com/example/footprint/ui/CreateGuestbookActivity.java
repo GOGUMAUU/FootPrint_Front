@@ -25,6 +25,7 @@ import com.example.footprint.api.ApiClient;
 import com.example.footprint.data.model.Guestbook;
 import com.example.footprint.databinding.ActivityCreateGuestbookBinding;
 import com.example.footprint.util.AppConfig;
+import com.example.footprint.security.TokenManager;
 import com.example.footprint.util.ImageCompressor;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -79,6 +80,8 @@ public class CreateGuestbookActivity extends AppCompatActivity {
     private Uri cameraUri;
     private final ExecutorService io = Executors.newSingleThreadExecutor();
     private boolean saving;
+    private String selectedName;
+    private int geoSeq;
 
     private final ActivityResultLauncher<PickVisualMediaRequest> pickPhotos = registerForActivityResult(
             new ActivityResultContracts.PickMultipleVisualMedia(MAX_PHOTOS), uris -> {
@@ -102,6 +105,13 @@ public class CreateGuestbookActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         binding = ActivityCreateGuestbookBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+
+        if (new TokenManager(this).read() == null) {
+            Toast.makeText(this, "로그인 후에 방명록을 남길 수 있어요.", Toast.LENGTH_LONG).show();
+            startActivity(new android.content.Intent(this, LoginActivity.class));
+            finish();
+            return;
+        }
 
         binding.createMapView.start(new MapLifeCycleCallback() {
             @Override
@@ -164,6 +174,29 @@ public class CreateGuestbookActivity extends AppCompatActivity {
 
             binding.tvSelectedLocation.setText(String.format(Locale.KOREA, "선택 위치: %.5f, %.5f (내 위치에서 %dm)",
                     coord.getLatitude(), coord.getLongitude(), (int) meters));
+
+
+            final String poiName = (poi != null && poi.getName() != null && !poi.getName().isEmpty())
+                    ? poi.getName() : null;
+            selectedName = poiName;
+            if (poiName != null) {
+                binding.tvSelectedLocation.setText("선택 위치: " + poiName + " (내 위치에서 " + (int) meters + "m)");
+            }
+            final int seq = ++geoSeq;
+            final int distM = (int) meters;
+            io.execute(() -> {
+                try {
+                    Response<Map<String, String>> r = ApiClient.get()
+                            .reverseGeocode(coord.getLatitude(), coord.getLongitude()).execute();
+                    final String disp = (r.isSuccessful() && r.body() != null) ? r.body().get("display") : null;
+                    runOnUiThread(() -> {
+                        if (seq != geoSeq || poiName != null || disp == null || disp.isEmpty()) return;
+                        selectedName = disp;
+                        binding.tvSelectedLocation.setText("선택 위치: " + disp + " (내 위치에서 " + distM + "m)");
+                    });
+                } catch (Exception ignored) {
+                }
+            });
         });
     }
 
@@ -239,6 +272,8 @@ public class CreateGuestbookActivity extends AppCompatActivity {
             final double curLat = loc.getLatitude();
             final double curLng = loc.getLongitude();
             final boolean isPrivate = binding.rbPrivate.isChecked();
+            final String locName = selectedName == null ? null
+                    : (selectedName.length() > 100 ? selectedName.substring(0, 100) : selectedName);
 
             io.execute(() -> {
                 try {
@@ -253,6 +288,7 @@ public class CreateGuestbookActivity extends AppCompatActivity {
                     body.put("content", text);
                     body.put("visibility", isPrivate ? "PRIVATE" : "PUBLIC");
                     body.put("photoPaths", paths);
+                    if (locName != null) body.put("locationName", locName);
 
                     Response<Guestbook> res = ApiClient.get().createGuestbook(body).execute();
                     if (!res.isSuccessful()) throw new IllegalStateException(errorMessage(res));

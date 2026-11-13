@@ -72,6 +72,10 @@ public interface ApiService {
     @POST("api/guestbooks")
     Call<Guestbook> createGuestbook(@Body Map<String, Object> body);
 
+
+    @GET("api/places/reverse")
+    Call<Map<String, String>> reverseGeocode(@Query("lat") double lat, @Query("lng") double lng);
+
     @Multipart
     @POST("api/guestbook-photos")
     Call<Map<String, String>> uploadPhoto(@Part MultipartBody.Part file,
