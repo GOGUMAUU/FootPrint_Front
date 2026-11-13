@@ -4,7 +4,7 @@ public final class AppConfig {
     private AppConfig() {}
 
     // Product assumptions: easy to change before backend contracts are frozen.
-    public static final double NEARBY_MAX_RADIUS_METERS = 5000.0;
+    public static final double NEARBY_MAX_RADIUS_METERS = 3000.0;
     public static final double GUESTBOOK_UNLOCK_RADIUS_METERS = 100.0;
     public static final double CREATE_ALLOWED_RADIUS_METERS = 150.0;
     public static final int SHORT_TEXT_MAX = 120;
