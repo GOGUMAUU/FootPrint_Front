@@ -133,7 +133,8 @@ public class GuestbookDetailDialog extends DialogFragment {
         binding.tvError.setVisibility(View.GONE);
         binding.content.setVisibility(View.VISIBLE);
         binding.tvContent.setText(d.content);
-        String meta = "- " + (d.nickname == null ? "" : d.nickname) + " · " + formatDate(d.createdAt);
+        binding.tvTitle.setText(d.nickname == null || d.nickname.isEmpty() ? "방명록" : d.nickname + "의 방명록");
+        String meta = formatDate(d.createdAt);
         if (d.locationName != null && !d.locationName.isEmpty()) meta += " · " + d.locationName;
         binding.tvMeta.setText(meta);
         renderPhotos(d.photoUrls);
