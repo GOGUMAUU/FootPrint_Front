@@ -142,7 +142,7 @@ public class EditGuestbookActivity extends AppCompatActivity {
 
             ImageView img = new ImageView(this);
             img.setScaleType(ImageView.ScaleType.CENTER_CROP);
-            if (item.path != null) Glide.with(this).load(fullUrl(item.path)).into(img);
+            if (item.path != null) Glide.with(this).load(com.example.footprint.util.AuthImage.of(this, fullUrl(item.path))).into(img);
             else Glide.with(this).load(item.uri).into(img);
             cell.addView(img, new FrameLayout.LayoutParams(size, size));
 

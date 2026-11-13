@@ -165,7 +165,7 @@ public class GuestbookDetailDialog extends DialogFragment {
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(w, h);
             lp.setMarginEnd((int) (8 * d));
             img.setLayoutParams(lp);
-            Glide.with(this).load(fullUrl(path))
+            Glide.with(this).load(com.example.footprint.util.AuthImage.of(requireContext(), fullUrl(path)))
                     .transform(new CenterCrop(), new RoundedCorners(radius))
                     .into(img);
             binding.photoContainer.addView(img);
