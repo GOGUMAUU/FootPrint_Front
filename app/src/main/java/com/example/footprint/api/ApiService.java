@@ -42,7 +42,8 @@ public interface ApiService {
     Call<ApiResponse<NearbyGuestbookResponse>> getNearbyGuestbooks(
             @Query("latitude") double latitude,
             @Query("longitude") double longitude,
-            @Query("zoomLevel") int zoomLevel);
+            @Query("zoomLevel") int zoomLevel,
+            @Query("sort") String sort);
 
     @POST("api/maps/guestbooks/{guestbookId}/check-distance")
     Call<Void> checkDistance(@Path("guestbookId") String guestbookId,

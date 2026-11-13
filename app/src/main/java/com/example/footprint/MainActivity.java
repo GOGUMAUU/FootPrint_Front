@@ -23,6 +23,7 @@ import com.example.footprint.ui.ChallengeActivity;
 import com.example.footprint.ui.CreateGuestbookActivity;
 import com.example.footprint.ui.UserSearchActivity;
 import com.example.footprint.util.AppConfig;
+import com.example.footprint.util.MockGuestbooks;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
@@ -30,7 +31,6 @@ import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.Priority;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -57,6 +57,7 @@ public class MainActivity extends AppCompatActivity {
     private Call<List<Guestbook>> boundsCall;
 
     private String mode = "nearby"; // nearby | following | me
+    private String sort = "distance"; // 주변 모드 정렬: distance | popular
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,6 +82,12 @@ public class MainActivity extends AppCompatActivity {
         binding.btnNearby.setOnClickListener(v -> switchMode("nearby"));
         binding.btnFollowing.setOnClickListener(v -> switchMode("following"));
         binding.btnMyMap.setOnClickListener(v -> switchMode("me"));
+        binding.btnSort.setOnClickListener(v -> {
+            sort = "distance".equals(sort) ? "popular" : "distance";
+            binding.btnSort.setText("distance".equals(sort) ? "거리순" : "인기순");
+            map.clearGuestbooks();
+            scheduleReloadForCamera();
+        });
         binding.btnFilter.setOnClickListener(v -> Toast.makeText(this, "필터 UI: 연령대 · 최근 N일 · 인기/최신", Toast.LENGTH_SHORT).show());
     }
 
@@ -94,7 +101,7 @@ public class MainActivity extends AppCompatActivity {
 
         if ("nearby".equals(mode)) {
             if (currentLocation != null) {
-                map.moveCamera(currentLocation.getLatitude(), currentLocation.getLongitude(), 15);
+                map.moveCamera(currentLocation.getLatitude(), currentLocation.getLongitude(), AppConfig.NEARBY_DEFAULT_ZOOM);
             } else {
                 ensureLocationPermissionAndLoad();
             }
@@ -114,8 +121,7 @@ public class MainActivity extends AppCompatActivity {
     /** 모드별 줌 범위 + 반경 제한 */
     private void applyModeCameraPolicy() {
         if ("nearby".equals(mode)) {
-            int detail = (int) Math.round(AppConfig.ZOOM_DETAIL);
-            map.setZoomRange(detail - 1, detail + 4);
+            map.setZoomRange(AppConfig.NEARBY_MIN_ZOOM, AppConfig.NEARBY_MAX_ZOOM);
             if (currentLocation != null) {
                 map.setRadiusLimit(currentLocation.getLatitude(), currentLocation.getLongitude(),
                         AppConfig.NEARBY_MAX_RADIUS_METERS);
@@ -130,6 +136,8 @@ public class MainActivity extends AppCompatActivity {
         binding.btnNearby.setSelected("nearby".equals(mode));
         binding.btnFollowing.setSelected("following".equals(mode));
         binding.btnMyMap.setSelected("me".equals(mode));
+        // 거리순/인기순 토글은 주변 모드에서만
+        binding.btnSort.setVisibility("nearby".equals(mode) ? android.view.View.VISIBLE : android.view.View.GONE);
     }
 
     // ───────────────────────── 위치 ─────────────────────────
@@ -192,7 +200,7 @@ public class MainActivity extends AppCompatActivity {
             // 반경 제한 기준점을 내 위치로 갱신
             map.setRadiusLimit(loc.getLatitude(), loc.getLongitude(), AppConfig.NEARBY_MAX_RADIUS_METERS);
             if (firstFix) {
-                map.moveCamera(loc.getLatitude(), loc.getLongitude(), 15);
+                map.moveCamera(loc.getLatitude(), loc.getLongitude(), AppConfig.NEARBY_DEFAULT_ZOOM);
             } else {
                 map.moveCamera(loc.getLatitude(), loc.getLongitude()); // 줌 유지하고 따라가기
             }
@@ -220,11 +228,17 @@ public class MainActivity extends AppCompatActivity {
 
         if ("nearby".equals(mode)) {
             if (currentLocation == null) return;
+            if (AppConfig.USE_MOCK_DATA) {
+                renderGuestbooks(MockGuestbooks.nearby(
+                        currentLocation.getLatitude(), currentLocation.getLongitude(), zoom, sort), zoom);
+                return;
+            }
             if (nearbyCall != null && !nearbyCall.isCanceled()) nearbyCall.cancel();
             nearbyCall = ApiClient.get().getNearbyGuestbooks(
                     currentLocation.getLatitude(),
                     currentLocation.getLongitude(),
-                    zoom
+                    zoom,
+                    sort
             );
             nearbyCall.enqueue(new Callback<>() {
                 @Override
@@ -244,6 +258,12 @@ public class MainActivity extends AppCompatActivity {
         } else {
             double[] bounds = map.estimateVisibleBounds();
             if (bounds == null) return;
+            if (AppConfig.USE_MOCK_DATA) {
+                renderGuestbooks(MockGuestbooks.inBounds(
+                        "following".equals(mode) ? "following" : "me", bounds, zoom,
+                        zoom < AppConfig.ZOOM_DETAIL ? "popular" : "latest"), zoom);
+                return;
+            }
             if (boundsCall != null && !boundsCall.isCanceled()) boundsCall.cancel();
             boundsCall = ApiClient.get().getGuestbooksInBounds(
                     "following".equals(mode) ? "following" : "me",
@@ -274,18 +294,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    /** 모드 정책에 맞게 걸러서 지도에 넘김 (줌아웃 시 대표 방명록만) */
+    /** 클러스터링·대표 글 선정·정렬은 서버가 해서 내려주므로 그대로 그림 */
     private void renderGuestbooks(List<Guestbook> list, int zoom) {
-        if (list == null) {
-            map.clearGuestbooks();
-            return;
-        }
-        List<Guestbook> visible = new ArrayList<>();
-        for (Guestbook g : list) {
-            if (!"nearby".equals(mode) && zoom < AppConfig.ZOOM_REGION && !g.isRepresentative()) continue;
-            visible.add(g);
-        }
-        map.showGuestbooks(visible);
+        map.showGuestbooks(list);
     }
 
     /** 클러스터 클릭(줌인)은 지도 컴포넌트가 처리하고, 여기로는 일반 방명록만 들어옴 */

@@ -7,8 +7,8 @@ public class Guestbook {
     private Long id;
 
     private Long userId;
-    private String content;      // /bound 응답용 본문
-    private String title;        // /nearby 응답용 요약 제목
+    private String content;      // 본문 전체
+    private String title;        // 말풍선용 요약 (서버에서 30자로 자름)
     private String thumbnailUrl;
     private double latitude;
     private double longitude;
@@ -17,12 +17,11 @@ public class Guestbook {
     private String createdAt;
     private String updatedAt;
 
-    // /nearby 전용 필드
-    private Double distanceMeter;
+    private Double distanceMeter;  // nearby에서만 값 있음
     private Boolean isAccessible;
     private Integer likeCount;
     private Boolean isClustered;
-    private Integer clusterCount;
+    private Integer clusterCount;  // 대표 글 포함 개수
 
     private boolean representative;
 
@@ -46,13 +45,18 @@ public class Guestbook {
     public int getClusterCount() { return clusterCount != null ? clusterCount : 1; }
     public boolean isRepresentative() { return representative || getLikeCount() >= 5; }
 
-    // 말풍선 마커에 띄울 텍스트 자동 조합
+    // 말풍선 텍스트. 클러스터면 "대표 글 외 N개"
     public String getShortText() {
-        if (isClustered()) {
-            return (locationName != null ? locationName : "이 지역") + " (+" + getClusterCount() + ")";
+        String base;
+        if (title != null && !title.isEmpty()) base = title;
+        else if (content != null && !content.isEmpty()) base = content;
+        else if (locationName != null) base = locationName;
+        else base = "방명록";
+
+        if (isClustered() && getClusterCount() > 1) {
+            if (base.length() > 8) base = base.substring(0, 8) + "…";
+            return base + " 외 " + (getClusterCount() - 1) + "개";
         }
-        if (title != null && !title.isEmpty()) return title;
-        if (content != null && !content.isEmpty()) return content;
-        return locationName != null ? locationName : "방명록";
+        return base;
     }
 }
