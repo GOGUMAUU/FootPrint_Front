@@ -308,7 +308,9 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, "직접 가까이 이동해야 열람할 수 있어요." + distMsg, Toast.LENGTH_LONG).show();
             return;
         }
-        Toast.makeText(this, g.getShortText(), Toast.LENGTH_SHORT).show();
+        com.example.footprint.ui.GuestbookDetailDialog.open(getSupportFragmentManager(), g.getId(),
+                currentLocation == null ? null : currentLocation.getLatitude(),
+                currentLocation == null ? null : currentLocation.getLongitude());
     }
 
     // ───────────────────────── 생명주기 ─────────────────────────
