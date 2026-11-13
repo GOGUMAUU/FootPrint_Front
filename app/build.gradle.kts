@@ -11,7 +11,7 @@ if (localPropertiesFile.exists()) {
     localPropertiesFile.inputStream().use { localProperties.load(it) }
 }
 val kakaoNativeAppKey: String = localProperties.getProperty("KAKAO_NATIVE_APP_KEY", "YOUR_KAKAO_NATIVE_APP_KEY_HERE")
-var apiBaseUrl: String = localProperties.getProperty("API_BASE_URL", "https://example.com/")
+var apiBaseUrl: String = localProperties.getProperty("API_BASE_URL", "http://10.0.2.2:8080/")
 if (!apiBaseUrl.endsWith("/")) {
     apiBaseUrl += "/"
 }

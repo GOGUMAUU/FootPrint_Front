@@ -301,8 +301,13 @@ public class FootprintMapController {
 
     /** 클러스터 클릭 → 줌인. 줌이 바뀌니 idle 이벤트를 막지 않아서 자동 재조회됨 */
     private void zoomIntoCluster(Guestbook g) {
-        int maxZoom = AppConfig.CLUSTER_MAX_ZOOM; // 서버가 이 줌부터 낱개로 내려줌
-        int zoom = Math.min(getZoomLevel() + 2, maxZoom);
+        int current = getZoomLevel();
+        // 이미 최대로 확대했는데도 묶여 있으면(거의 같은 자리) 대표 글을 바로 연다
+        if (kakaoMap == null || current >= kakaoMap.getMaxZoomLevel() || current >= AppConfig.NEARBY_MAX_ZOOM) {
+            if (guestbookClickListener != null) guestbookClickListener.onGuestbookClick(g);
+            return;
+        }
+        int zoom = Math.min(current + 2, AppConfig.CLUSTER_MAX_ZOOM);
         moveCameraInternal(g.getLatitude(), g.getLongitude(), zoom, false);
     }
 }
