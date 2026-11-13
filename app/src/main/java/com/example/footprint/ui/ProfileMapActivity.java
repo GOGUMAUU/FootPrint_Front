@@ -4,30 +4,33 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import com.example.footprint.databinding.ActivityProfileMapBinding;
-import com.naver.maps.geometry.LatLng;
-import com.naver.maps.map.CameraUpdate;
-import com.naver.maps.map.NaverMap;
-import com.naver.maps.map.OnMapReadyCallback;
+import com.kakao.vectormap.KakaoMap;
+import com.kakao.vectormap.KakaoMapReadyCallback;
+import com.kakao.vectormap.LatLng;
+import com.kakao.vectormap.MapLifeCycleCallback;
+import com.kakao.vectormap.camera.CameraUpdateFactory;
 
-public class ProfileMapActivity extends AppCompatActivity implements OnMapReadyCallback {
+public class ProfileMapActivity extends AppCompatActivity {
     private ActivityProfileMapBinding binding;
+
     @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = ActivityProfileMapBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-        binding.profileMapView.onCreate(savedInstanceState);
-        binding.profileMapView.getMapAsync(this);
+        binding.profileMapView.start(new MapLifeCycleCallback() {
+            @Override
+            public void onMapDestroy() {
+            }
+
+            @Override
+            public void onMapError(Exception error) {
+            }
+        }, new KakaoMapReadyCallback() {
+            @Override
+            public void onMapReady(@NonNull KakaoMap map) {
+                map.moveCamera(CameraUpdateFactory.newCenterPosition(LatLng.from(36.35, 127.8), 6));
+                // TODO call /api/maps/guestbooks/bound?scope=user&userId=...
+            }
+        });
     }
-    @Override public void onMapReady(@NonNull NaverMap map) {
-        // User-specific map: country-wide browsing allowed because scope is one explicit user.
-        map.moveCamera(CameraUpdate.scrollAndZoomTo(new LatLng(36.35,127.8), 6.5));
-        // TODO call /api/maps/guestbooks/bound?scope=user&userId=...
-    }
-    @Override protected void onStart(){super.onStart();binding.profileMapView.onStart();}
-    @Override protected void onResume(){super.onResume();binding.profileMapView.onResume();}
-    @Override protected void onPause(){binding.profileMapView.onPause();super.onPause();}
-    @Override protected void onStop(){binding.profileMapView.onStop();super.onStop();}
-    @Override protected void onDestroy(){binding.profileMapView.onDestroy();super.onDestroy();}
-    @Override public void onLowMemory(){super.onLowMemory();binding.profileMapView.onLowMemory();}
-    @Override protected void onSaveInstanceState(@NonNull Bundle outState){super.onSaveInstanceState(outState);binding.profileMapView.onSaveInstanceState(outState);}
 }

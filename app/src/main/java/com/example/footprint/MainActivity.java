@@ -2,57 +2,75 @@ package com.example.footprint;
 
 import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 import com.example.footprint.api.ApiClient;
-import com.example.footprint.databinding.ActivityMainBinding;
+import com.example.footprint.data.model.ApiResponse;
 import com.example.footprint.data.model.Guestbook;
-import com.example.footprint.ui.UserSearchActivity;
-import com.example.footprint.ui.CreateGuestbookActivity;
+import com.example.footprint.data.model.NearbyGuestbookResponse;
+import com.example.footprint.databinding.ActivityMainBinding;
+import com.example.footprint.map.FootprintMapController;
 import com.example.footprint.ui.ChallengeActivity;
-import com.example.footprint.ui.ProfileMapActivity;
+import com.example.footprint.ui.CreateGuestbookActivity;
+import com.example.footprint.ui.UserSearchActivity;
 import com.example.footprint.util.AppConfig;
-import com.example.footprint.util.GuestbookMarkerRenderer;
+import com.example.footprint.util.MockGuestbooks;
 import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
-import com.naver.maps.geometry.LatLng;
-import com.naver.maps.map.CameraUpdate;
-import com.naver.maps.map.LocationTrackingMode;
-import com.naver.maps.map.NaverMap;
-import com.naver.maps.map.OnMapReadyCallback;
-import com.naver.maps.map.overlay.Marker;
-import com.naver.maps.map.util.FusedLocationSource;
+import com.google.android.gms.location.Priority;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
+public class MainActivity extends AppCompatActivity {
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1000;
-    private ActivityMainBinding binding;
-    private FusedLocationSource locationSource;
-    private FusedLocationProviderClient fusedClient;
-    private NaverMap naverMap;
-    private Location currentLocation;
-    private final List<Marker> markers = new ArrayList<>();
-    private String mode = "nearby"; // nearby | following | me
 
-    @Override protected void onCreate(Bundle savedInstanceState) {
+    private ActivityMainBinding binding;
+    private FootprintMapController map;
+    private FusedLocationProviderClient fusedClient;
+
+    private Location currentLocation;
+    private Location lastReloadLocation;
+    private LocationCallback locationCallback;
+    private boolean requestingUpdates = false;
+
+    private final Handler cameraReloadHandler = new Handler(Looper.getMainLooper());
+    private final Runnable cameraReloadRunnable = this::reloadForCamera;
+    private long reloadRequestVersion = 0L;
+    private Call<ApiResponse<NearbyGuestbookResponse>> nearbyCall;
+    private Call<List<Guestbook>> boundsCall;
+
+    private String mode = "nearby"; // nearby | following | me
+    private String sort = "distance"; // 주변 모드 정렬: distance | popular
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-        locationSource = new FusedLocationSource(this, LOCATION_PERMISSION_REQUEST_CODE);
         fusedClient = LocationServices.getFusedLocationProviderClient(this);
-        binding.mapView.onCreate(savedInstanceState);
-        binding.mapView.getMapAsync(this);
+
+        // ── 공통 지도 컴포넌트 ──
+        map = new FootprintMapController(this, binding.mapView);
+        map.setOnGuestbookClickListener(this::openGuestbook);
+        map.setOnCameraIdleListener((center, zoom) -> scheduleReloadForCamera());
+        map.start(() -> switchMode("nearby"));
 
         binding.fabCreate.setOnClickListener(v -> startActivity(new Intent(this, CreateGuestbookActivity.class)));
         binding.btnUsers.setOnClickListener(v -> startActivity(new Intent(this, UserSearchActivity.class)));
@@ -64,116 +82,269 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         binding.btnNearby.setOnClickListener(v -> switchMode("nearby"));
         binding.btnFollowing.setOnClickListener(v -> switchMode("following"));
         binding.btnMyMap.setOnClickListener(v -> switchMode("me"));
+        binding.btnSort.setOnClickListener(v -> {
+            sort = "distance".equals(sort) ? "popular" : "distance";
+            binding.btnSort.setText("distance".equals(sort) ? "거리순" : "인기순");
+            map.clearGuestbooks();
+            scheduleReloadForCamera();
+        });
         binding.btnFilter.setOnClickListener(v -> Toast.makeText(this, "필터 UI: 연령대 · 최근 N일 · 인기/최신", Toast.LENGTH_SHORT).show());
     }
 
-    @Override public void onMapReady(@NonNull NaverMap map) {
-        this.naverMap = map;
-        map.setLocationSource(locationSource);
-        map.getUiSettings().setLocationButtonEnabled(true);
-        map.setLocationTrackingMode(LocationTrackingMode.Follow);
-        map.setMinZoom(5.5);
-        map.setMaxZoom(20.0);
-        map.addOnCameraIdleListener(this::reloadForCamera);
-        requestAndLoadLocation();
-    }
-
-    private void requestAndLoadLocation() {
-        requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
-        try {
-            fusedClient.getLastLocation().addOnSuccessListener(location -> {
-                if (location != null) {
-                    currentLocation = location;
-                    naverMap.moveCamera(CameraUpdate.scrollAndZoomTo(new LatLng(location.getLatitude(), location.getLongitude()), 14));
-                    reloadForCamera();
-                }
-            });
-        } catch (SecurityException ignored) {}
-    }
+    // ───────────────────────── 모드 ─────────────────────────
 
     private void switchMode(String nextMode) {
         mode = nextMode;
-        clearMarkers();
-        if ("nearby".equals(mode) && currentLocation != null) {
-            naverMap.moveCamera(CameraUpdate.scrollAndZoomTo(new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude()), 14));
+        updateModeButtons();
+        applyModeCameraPolicy();
+        map.clearGuestbooks();
+
+        if ("nearby".equals(mode)) {
+            if (currentLocation != null) {
+                map.moveCamera(currentLocation.getLatitude(), currentLocation.getLongitude(), AppConfig.NEARBY_DEFAULT_ZOOM);
+            } else {
+                ensureLocationPermissionAndLoad();
+            }
+        } else if ("me".equals(mode)) {
+            if (currentLocation != null) {
+                map.moveCamera(currentLocation.getLatitude(), currentLocation.getLongitude(), (int) Math.round(AppConfig.ZOOM_REGION));
+            } else {
+                ensureLocationPermissionAndLoad();
+                map.moveCamera(36.35, 127.8, (int) Math.round(AppConfig.ZOOM_REGION));
+            }
         } else {
-            // Full-country view is allowed only for my records / people I follow.
-            naverMap.moveCamera(CameraUpdate.scrollAndZoomTo(new LatLng(36.35, 127.8), 6.5));
+            map.moveCamera(36.35, 127.8, (int) Math.round(AppConfig.ZOOM_COUNTRY));
         }
-        reloadForCamera();
+        scheduleReloadForCamera();
+    }
+
+    /** 모드별 줌 범위 + 반경 제한 */
+    private void applyModeCameraPolicy() {
+        if ("nearby".equals(mode)) {
+            map.setZoomRange(AppConfig.NEARBY_MIN_ZOOM, AppConfig.NEARBY_MAX_ZOOM);
+            if (currentLocation != null) {
+                map.setRadiusLimit(currentLocation.getLatitude(), currentLocation.getLongitude(),
+                        AppConfig.NEARBY_MAX_RADIUS_METERS);
+            }
+        } else {
+            map.resetZoomRange();
+            map.clearRadiusLimit();
+        }
+    }
+
+    private void updateModeButtons() {
+        binding.btnNearby.setSelected("nearby".equals(mode));
+        binding.btnFollowing.setSelected("following".equals(mode));
+        binding.btnMyMap.setSelected("me".equals(mode));
+        // 거리순/인기순 토글은 주변 모드에서만
+        binding.btnSort.setVisibility("nearby".equals(mode) ? android.view.View.VISIBLE : android.view.View.GONE);
+    }
+
+    // ───────────────────────── 위치 ─────────────────────────
+
+    private boolean hasLocationPermission() {
+        boolean hasFine = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED;
+        boolean hasCoarse = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED;
+        return hasFine || hasCoarse;
+    }
+
+    private void ensureLocationPermissionAndLoad() {
+        if (!hasLocationPermission()) {
+            requestPermissions(new String[]{
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+            }, LOCATION_PERMISSION_REQUEST_CODE);
+            return;
+        }
+        startLocationUpdates();
+    }
+
+    private void startLocationUpdates() {
+        if (requestingUpdates || !hasLocationPermission()) return;
+
+        LocationRequest request = new LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 5000L)
+                .setMinUpdateIntervalMillis(2000L)
+                .setMinUpdateDistanceMeters(5f)
+                .build();
+
+        if (locationCallback == null) {
+            locationCallback = new LocationCallback() {
+                @Override
+                public void onLocationResult(@NonNull LocationResult result) {
+                    Location loc = result.getLastLocation();
+                    if (loc != null) onNewLocation(loc);
+                }
+            };
+        }
+        try {
+            fusedClient.requestLocationUpdates(request, locationCallback, Looper.getMainLooper());
+            requestingUpdates = true;
+        } catch (SecurityException ignored) {
+        }
+    }
+
+    private void stopLocationUpdates() {
+        if (!requestingUpdates || locationCallback == null) return;
+        fusedClient.removeLocationUpdates(locationCallback);
+        requestingUpdates = false;
+    }
+
+    private void onNewLocation(Location loc) {
+        boolean firstFix = (currentLocation == null);
+        currentLocation = loc;
+        map.showMyLocation(loc);
+
+        if ("nearby".equals(mode)) {
+            // 반경 제한 기준점을 내 위치로 갱신
+            map.setRadiusLimit(loc.getLatitude(), loc.getLongitude(), AppConfig.NEARBY_MAX_RADIUS_METERS);
+            if (firstFix) {
+                map.moveCamera(loc.getLatitude(), loc.getLongitude(), AppConfig.NEARBY_DEFAULT_ZOOM);
+            } else {
+                map.moveCamera(loc.getLatitude(), loc.getLongitude()); // 줌 유지하고 따라가기
+            }
+            // 내 위치 기준 조회라서 100m 이상 움직였을 때만 재조회
+            if (lastReloadLocation == null || lastReloadLocation.distanceTo(loc) > 100f) {
+                lastReloadLocation = loc;
+                scheduleReloadForCamera();
+            }
+        } else if ("me".equals(mode) && firstFix) {
+            map.moveCamera(loc.getLatitude(), loc.getLongitude(), (int) Math.round(AppConfig.ZOOM_REGION));
+        }
+    }
+
+    // ───────────────────────── 데이터 ─────────────────────────
+
+    private void scheduleReloadForCamera() {
+        cameraReloadHandler.removeCallbacks(cameraReloadRunnable);
+        cameraReloadHandler.postDelayed(cameraReloadRunnable, 250L);
     }
 
     private void reloadForCamera() {
-        if (naverMap == null) return;
-        double zoom = naverMap.getCameraPosition().zoom;
+        if (!map.isReady()) return;
+        final long requestVersion = ++reloadRequestVersion;
+        final int zoom = map.getZoomLevel();
+
         if ("nearby".equals(mode)) {
             if (currentLocation == null) return;
-            // Backend must enforce radius as well; UI restriction alone is not security.
-            ApiClient.get().getNearbyGuestbooks(currentLocation.getLatitude(), currentLocation.getLongitude(), zoom,
-                            AppConfig.NEARBY_MAX_RADIUS_METERS, null, 30, zoom < AppConfig.ZOOM_DETAIL ? "popular" : "latest")
-                    .enqueue(guestbookCallback());
+            if (AppConfig.USE_MOCK_DATA) {
+                renderGuestbooks(MockGuestbooks.nearby(
+                        currentLocation.getLatitude(), currentLocation.getLongitude(), zoom, sort), zoom);
+                return;
+            }
+            if (nearbyCall != null && !nearbyCall.isCanceled()) nearbyCall.cancel();
+            nearbyCall = ApiClient.get().getNearbyGuestbooks(
+                    currentLocation.getLatitude(),
+                    currentLocation.getLongitude(),
+                    zoom,
+                    sort
+            );
+            nearbyCall.enqueue(new Callback<>() {
+                @Override
+                public void onResponse(@NonNull Call<ApiResponse<NearbyGuestbookResponse>> call,
+                                       @NonNull Response<ApiResponse<NearbyGuestbookResponse>> response) {
+                    if (requestVersion != reloadRequestVersion || call.isCanceled()) return;
+                    if (!response.isSuccessful() || response.body() == null || response.body().getData() == null) return;
+                    renderGuestbooks(response.body().getData().getGuestbooks(), zoom);
+                }
+
+                @Override
+                public void onFailure(@NonNull Call<ApiResponse<NearbyGuestbookResponse>> call, @NonNull Throwable t) {
+                    if (requestVersion != reloadRequestVersion || call.isCanceled()) return;
+                    Toast.makeText(MainActivity.this, "주변 방명록 조회 실패: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
         } else {
-            com.naver.maps.geometry.LatLngBounds b = naverMap.getContentBounds();
-            ApiClient.get().getGuestbooksInBounds("following".equals(mode) ? "following" : "me", null, zoom,
-                            b.getSouthLatitude(), b.getWestLongitude(), b.getNorthLatitude(), b.getEastLongitude())
-                    .enqueue(guestbookCallback());
+            double[] bounds = map.estimateVisibleBounds();
+            if (bounds == null) return;
+            if (AppConfig.USE_MOCK_DATA) {
+                renderGuestbooks(MockGuestbooks.inBounds(
+                        "following".equals(mode) ? "following" : "me", bounds, zoom,
+                        zoom < AppConfig.ZOOM_DETAIL ? "popular" : "latest"), zoom);
+                return;
+            }
+            if (boundsCall != null && !boundsCall.isCanceled()) boundsCall.cancel();
+            boundsCall = ApiClient.get().getGuestbooksInBounds(
+                    "following".equals(mode) ? "following" : "me",
+                    null,
+                    zoom,
+                    bounds[0],
+                    bounds[1],
+                    bounds[2],
+                    bounds[3],
+                    null,
+                    null,
+                    zoom < AppConfig.ZOOM_DETAIL ? "popular" : "latest"
+            );
+            boundsCall.enqueue(new Callback<>() {
+                @Override
+                public void onResponse(@NonNull Call<List<Guestbook>> call, @NonNull Response<List<Guestbook>> response) {
+                    if (requestVersion != reloadRequestVersion || call.isCanceled()) return;
+                    if (!response.isSuccessful() || response.body() == null) return;
+                    renderGuestbooks(response.body(), zoom);
+                }
+
+                @Override
+                public void onFailure(@NonNull Call<List<Guestbook>> call, @NonNull Throwable t) {
+                    if (requestVersion != reloadRequestVersion || call.isCanceled()) return;
+                    Toast.makeText(MainActivity.this, "영역 방명록 조회 실패: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
         }
     }
 
-    private Callback<List<Guestbook>> guestbookCallback() {
-        return new Callback<List<Guestbook>>() {
-            @Override public void onResponse(@NonNull Call<List<Guestbook>> call, @NonNull Response<List<Guestbook>> response) {
-                if (!response.isSuccessful() || response.body() == null) return;
-                clearMarkers();
-                double zoom = naverMap.getCameraPosition().zoom;
-                for (Guestbook g : response.body()) {
-                    if (zoom < AppConfig.ZOOM_REGION && !g.isRepresentative()) continue;
-                    Marker m = new Marker();
-                    m.setPosition(new LatLng(g.getLatitude(), g.getLongitude()));
-                    GuestbookMarkerRenderer.apply(MainActivity.this, m, g.getShortText(), g.isRepresentative());
-                    m.setOnClickListener(overlay -> {
-                        openGuestbook(g);
-                        return true;
-                    });
-                    m.setMap(naverMap);
-                    markers.add(m);
-                }
-            }
-            @Override public void onFailure(@NonNull Call<List<Guestbook>> call, @NonNull Throwable t) {
-                Toast.makeText(MainActivity.this, "목록을 불러오지 못했습니다: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        };
+    /** 클러스터링·대표 글 선정·정렬은 서버가 해서 내려주므로 그대로 그림 */
+    private void renderGuestbooks(List<Guestbook> list, int zoom) {
+        map.showGuestbooks(list);
     }
 
+    /** 클러스터 클릭(줌인)은 지도 컴포넌트가 처리하고, 여기로는 일반 방명록만 들어옴 */
     private void openGuestbook(Guestbook g) {
-        if (!"nearby".equals(mode)) {
-            Toast.makeText(this, g.getShortText() == null ? "방명록" : g.getShortText(), Toast.LENGTH_SHORT).show();
+        if ("nearby".equals(mode) && !g.isAccessible()) {
+            String distMsg = g.getDistanceMeter() != null
+                    ? String.format(Locale.getDefault(), " (현재 거리: %.0fm)", g.getDistanceMeter())
+                    : "";
+            Toast.makeText(this, "직접 가까이 이동해야 열람할 수 있어요." + distMsg, Toast.LENGTH_LONG).show();
             return;
         }
-        if (currentLocation == null) return;
-        java.util.Map<String, Double> body = new java.util.HashMap<>();
-        body.put("lat", currentLocation.getLatitude());
-        body.put("lng", currentLocation.getLongitude());
-        ApiClient.get().checkDistance(String.valueOf(g.getId()), body).enqueue(new Callback<java.util.Map<String, Object>>() {
-            @Override public void onResponse(@NonNull Call<java.util.Map<String, Object>> call, @NonNull Response<java.util.Map<String, Object>> response) {
-                boolean allowed = response.body() != null && Boolean.TRUE.equals(response.body().get("allowed"));
-                Toast.makeText(MainActivity.this, allowed ? (g.getShortText() == null ? "방명록 열림" : g.getShortText()) : "직접 가까이 이동해야 열람할 수 있어요.", Toast.LENGTH_LONG).show();
-            }
-            @Override public void onFailure(@NonNull Call<java.util.Map<String, Object>> call, @NonNull Throwable t) {}
-        });
+        Toast.makeText(this, g.getShortText(), Toast.LENGTH_SHORT).show();
     }
 
-    private void clearMarkers() { for (Marker m : markers) m.setMap(null); markers.clear(); }
+    // ───────────────────────── 생명주기 ─────────────────────────
 
-    @Override public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if (locationSource.onRequestPermissionsResult(requestCode, permissions, grantResults)) return;
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
+            if (hasLocationPermission()) {
+                startLocationUpdates();
+            } else if ("nearby".equals(mode)) {
+                Toast.makeText(this, "주변 모드는 위치 권한이 필요해요.", Toast.LENGTH_SHORT).show();
+            }
+            return;
+        }
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
-    @Override protected void onStart(){super.onStart();binding.mapView.onStart();}
-    @Override protected void onResume(){super.onResume();binding.mapView.onResume();}
-    @Override protected void onPause(){binding.mapView.onPause();super.onPause();}
-    @Override protected void onStop(){binding.mapView.onStop();super.onStop();}
-    @Override protected void onDestroy(){binding.mapView.onDestroy();super.onDestroy();}
-    @Override public void onLowMemory(){super.onLowMemory();binding.mapView.onLowMemory();}
-    @Override protected void onSaveInstanceState(@NonNull Bundle outState){super.onSaveInstanceState(outState);binding.mapView.onSaveInstanceState(outState);}
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        map.resume();
+        if (map.isReady()) startLocationUpdates();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        map.pause();
+        stopLocationUpdates();
+    }
+
+    @Override
+    protected void onDestroy() {
+        cameraReloadHandler.removeCallbacks(cameraReloadRunnable);
+        if (nearbyCall != null && !nearbyCall.isCanceled()) nearbyCall.cancel();
+        if (boundsCall != null && !boundsCall.isCanceled()) boundsCall.cancel();
+        super.onDestroy();
+    }
 }
