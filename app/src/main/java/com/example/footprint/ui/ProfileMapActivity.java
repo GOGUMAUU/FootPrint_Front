@@ -9,6 +9,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.footprint.api.ApiClient;
+import com.example.footprint.data.model.MapFilterState;
 import com.example.footprint.databinding.ActivityProfileMapBinding;
 import com.example.footprint.map.FootprintMapController;
 import com.example.footprint.data.model.Guestbook;
@@ -29,6 +30,7 @@ import retrofit2.Response;
 public class ProfileMapActivity extends AppCompatActivity {
     private ActivityProfileMapBinding binding;
     private FootprintMapController map;
+    private MapFilterState filterState = new MapFilterState();
 
     private long targetUserId = -1L;
     private Call<List<Guestbook>> boundsCall;
@@ -53,6 +55,15 @@ public class ProfileMapActivity extends AppCompatActivity {
         map.start(() -> {
             map.moveCamera(36.35, 127.8, (int) Math.round(AppConfig.ZOOM_COUNTRY));
             scheduleReload();
+        });
+        binding.btnFilter.setOnClickListener(v -> {
+            FilterBottomSheetDialog dialog = FilterBottomSheetDialog.newInstance(filterState);
+            dialog.setOnFilterAppliedListener(newState -> {
+                this.filterState = newState;
+                map.clearGuestbooks();
+                scheduleReload();
+            });
+            dialog.show(getSupportFragmentManager(), "ProfileMapFilter");
         });
     }
     private void scheduleReload() {
@@ -83,8 +94,8 @@ public class ProfileMapActivity extends AppCompatActivity {
                 bounds[1],
                 bounds[2],
                 bounds[3],
-                null,
-                null,
+                filterState.getPeriod(),
+                filterState.getAgeGroup(),
                 zoom < AppConfig.ZOOM_DETAIL ? "popular" : "latest"
         );
 

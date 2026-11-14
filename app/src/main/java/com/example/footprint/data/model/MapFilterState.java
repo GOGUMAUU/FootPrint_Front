@@ -16,6 +16,11 @@ public class MapFilterState implements Serializable {
     public String getSort() { return sort; }
     public void setSort(String sort) { this.sort = sort; }
 
+    private Long selectedUserId; // null = 전체, non-null = 특정 팔로잉 유저
+
+    public Long getSelectedUserId() { return selectedUserId; }
+    public void setSelectedUserId(Long selectedUserId) { this.selectedUserId = selectedUserId; }
+
     public void reset() {
         this.period = null;
         this.ageGroup = null;
