@@ -29,7 +29,7 @@ public final class UserProfileActivity extends AppCompatActivity {
             ((android.widget.LinearLayout) binding.settings.getParent()).addView(button);
             button.setOnClickListener(v -> {
                 if (model.profile.getValue() == null) return;
-                startActivity(new android.content.Intent(this,RelationListActivity.class).putExtra("type",type).putExtra("userId",model.profile.getValue().userId.longValue()));
+                startActivity(new android.content.Intent(this,RelationListActivity.class).putExtra("type",type).putExtra("userId",model.profile.getValue().userId.longValue()).putExtra("own", own));
             });
         }
         binding.settings.setVisibility(own ? View.VISIBLE : View.GONE);
