@@ -6,6 +6,7 @@ import com.example.footprint.data.model.Guestbook;
 import com.example.footprint.data.model.GuestbookDetail;
 import com.example.footprint.data.model.NearbyGuestbookResponse;
 import com.example.footprint.data.model.UserSummary;
+import com.example.footprint.data.model.PageResponse;
 
 import java.util.List;
 import java.util.Map;
@@ -116,4 +117,26 @@ public interface ApiService {
     @POST("api/challenges/{challengeId}/submissions")
     Call<Void> submitChallenge(@Path("challengeId") String challengeId,
                                @Body Map<String, Object> body);
+
+    @GET("api/guestbooks/me")
+    Call<PageResponse<Guestbook>> getMyGuestbooks(
+            @Query("period") String period,
+            @Query("sort") String sort,
+            @Query("page") int page,
+            @Query("size") int size
+    );
+
+    @GET("api/guestbooks/users/{userId}")
+    Call<PageResponse<Guestbook>> getUserGuestbooks(
+            @Path("userId") long userId,
+            @Query("period") String period,
+            @Query("sort") String sort,
+            @Query("page") int page,
+            @Query("size") int size
+    );
+    @GET("api/users/me")
+    Call<UserSummary> getMyProfile();
+
+    @GET("api/users/{userId}/following")
+    Call<List<UserSummary>> getUserFollowing(@Path("userId") long userId);
 }

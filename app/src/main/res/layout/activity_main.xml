@@ -18,7 +18,7 @@
         android:id="@+id/filterScroll"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_margin="12dp"
+        android:layout_margin="30dp"
         android:fillViewport="false"
         android:scrollbars="none"
         app:layout_constraintTop_toTopOf="parent"

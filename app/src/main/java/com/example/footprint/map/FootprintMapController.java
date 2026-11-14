@@ -172,7 +172,8 @@ public class FootprintMapController {
 
     public void resetZoomRange() {
         if (kakaoMap == null) return;
-        kakaoMap.setCameraMinLevel(kakaoMap.getMinZoomLevel());
+        //kakaoMap.setCameraMinLevel(kakaoMap.getMinZoomLevel());
+        kakaoMap.setCameraMinLevel(6);
         kakaoMap.setCameraMaxLevel(kakaoMap.getMaxZoomLevel());
     }
 
