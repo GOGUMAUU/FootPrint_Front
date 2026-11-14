@@ -12,12 +12,18 @@ import com.example.footprint.security.Session;
 import java.util.*;
 
 public final class RelationListActivity extends AppCompatActivity {
+    private RelationListViewModel listModel;
+    private String listType;
+    private long ownerId;
     @Override protected void onCreate(Bundle state) {
         super.onCreate(state);
         if (!Session.signedIn(this)) { Session.login(this); return; }
         ActivityRelationsBinding binding = ActivityRelationsBinding.inflate(getLayoutInflater()); setContentView(binding.getRoot());
         String type = getIntent().getStringExtra("type"); long id = getIntent().getLongExtra("userId",0);
+        if (!java.util.Arrays.asList("followers","following","requests","blocks").contains(type)) { finish(); return; }
+        boolean own = getIntent().getBooleanExtra("own", false);
         RelationListViewModel model = new ViewModelProvider(this).get(RelationListViewModel.class);
+        listModel = model; listType = type; ownerId = id;
         binding.title.setText(type.equals("requests") ? "받은 팔로우 요청" : type.equals("blocks") ? "차단 목록" : type.equals("followers") ? "팔로워" : "팔로잉");
         binding.list.setLayoutManager(new LinearLayoutManager(this));
         binding.retry.setOnClickListener(v -> model.load(type,id,false)); binding.more.setOnClickListener(v -> model.load(type,id,true));
@@ -28,7 +34,7 @@ public final class RelationListActivity extends AppCompatActivity {
                     LinearLayout box = (LinearLayout)holder.itemView; box.removeAllViews(); RelationListViewModel.Row row = rows.get(position);
                     Button profile = new Button(box.getContext()); profile.setText(row.nickname); box.addView(profile);
                     profile.setOnClickListener(v -> startActivity(new android.content.Intent(RelationListActivity.this, UserProfileActivity.class).putExtra("userId",row.userId)));
-                    if (!type.equals("followers")) {
+                    if (own && !type.equals("followers")) {
                         Button action = new Button(box.getContext()); action.setText(type.equals("requests") ? "승인" : type.equals("blocks") ? "차단 해제" : "언팔로우"); box.addView(action);
                         action.setOnClickListener(v -> new AlertDialog.Builder(RelationListActivity.this).setMessage(action.getText()+"할까요?").setNegativeButton("취소",null).setPositiveButton("확인",(d,w)->model.act(row,true)).show());
                         if (type.equals("requests")) { Button reject = new Button(box.getContext()); reject.setText("거절"); box.addView(reject); reject.setOnClickListener(v -> model.act(row,false)); }
@@ -41,7 +47,7 @@ public final class RelationListActivity extends AppCompatActivity {
         model.error.observe(this, message -> { if (!message.isEmpty()) binding.error.setText(message); });
         model.busy.observe(this, busy -> { binding.retry.setEnabled(!busy); binding.more.setEnabled(!busy); });
         model.more.observe(this, more -> binding.more.setVisibility(more ? View.VISIBLE : View.GONE));
-        if (state == null) model.load(type,id,false);
     }
+    @Override protected void onResume() { super.onResume(); if (listModel != null && Session.signedIn(this)) listModel.load(listType,ownerId,false); }
     private static final class Holder extends RecyclerView.ViewHolder { Holder(View view) { super(view); } }
 }

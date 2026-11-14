@@ -37,7 +37,8 @@ public final class ProfileRepository {
     private static UserProfile copy(UserProfile user) {
         Gson gson = new Gson(); UserProfile copy = gson.fromJson(gson.toJson(user), UserProfile.class);
         if (copy.userId == 0) { copy.followerCount = MockRelations.list("followers").size(); copy.followingCount = MockRelations.list("following").size(); }
-        else { copy.isPrivate = copy.userId % 2 == 0; copy.outgoingFollowStatus = MockRelations.status(copy.userId); copy.incomingFollowStatus = MockRelations.requested(copy.userId) ? "PENDING" : "NONE"; copy.blockedByMe = MockRelations.blocked(copy.userId); }
+        else { copy.isPrivate = copy.userId % 2 == 0; copy.outgoingFollowStatus = MockRelations.status(copy.userId); copy.incomingFollowStatus = MockRelations.requested(copy.userId) ? "PENDING" : MockRelations.list("followers").contains(copy.userId) ? "ACCEPTED" : "NONE"; copy.blockedByMe = MockRelations.blocked(copy.userId);
+            copy.followerCount = MockRelations.list("followers", copy.userId).size(); copy.followingCount = MockRelations.list("following", copy.userId).size(); }
         return copy;
     }
     private Call<?> enqueue(Call<JsonObject> call, Result result) {
