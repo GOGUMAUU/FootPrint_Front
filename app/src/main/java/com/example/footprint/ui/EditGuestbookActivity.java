@@ -90,6 +90,7 @@ public class EditGuestbookActivity extends AppCompatActivity {
         locationName = getIntent().getStringExtra(EXTRA_LOCATION_NAME);
         binding.etContent.setText(getIntent().getStringExtra(EXTRA_CONTENT));
         binding.rbPrivate.setChecked("PRIVATE".equals(visibility));
+        binding.rbFollowers.setChecked("FOLLOWERS_ONLY".equals(visibility));
         List<String> old = getIntent().getStringArrayListExtra(EXTRA_PHOTOS);
         if (old != null) {
             for (String url : old) {
@@ -169,7 +170,8 @@ public class EditGuestbookActivity extends AppCompatActivity {
         setSaving(true);
 
         final List<Item> snapshot = new ArrayList<>(items);
-        final boolean isPrivate = binding.rbPrivate.isChecked();
+        final String vis = binding.rbPrivate.isChecked() ? "PRIVATE"
+                : (binding.rbFollowers.isChecked() ? "FOLLOWERS_ONLY" : "PUBLIC");
         io.execute(() -> {
             try {
                 List<String> paths = new ArrayList<>();
@@ -179,7 +181,7 @@ public class EditGuestbookActivity extends AppCompatActivity {
                 Map<String, Object> body = new HashMap<>();
                 body.put("content", text);
                 body.put("photoPaths", paths);
-                body.put("visibility", isPrivate ? "PRIVATE" : "PUBLIC");
+                body.put("visibility", vis);
                 if (locationName != null) body.put("locationName", locationName);
 
                 Response<GuestbookDetail> res = ApiClient.get().updateGuestbook(guestbookId, body).execute();

@@ -19,6 +19,7 @@
     <EditText android:id="@+id/etContent" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="짧은 글 (예: 120자 이내)" android:maxLength="120" />
     <RadioGroup android:id="@+id/rgVisibility" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:checkedButton="@+id/rbPublic" android:paddingTop="8dp">
         <RadioButton android:id="@+id/rbPublic" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="전체 공개" />
+        <RadioButton android:id="@+id/rbFollowers" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="16dp" android:text="팔로워 공개" />
         <RadioButton android:id="@+id/rbPrivate" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="16dp" android:text="나만 보기" />
     </RadioGroup>
     <Button android:id="@+id/btnSave" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="방명록 저장" />

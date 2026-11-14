@@ -2,6 +2,11 @@ package com.example.footprint.ui;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Path;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
@@ -39,6 +44,8 @@ import com.kakao.vectormap.camera.CameraUpdateFactory;
 import com.kakao.vectormap.label.Label;
 import com.kakao.vectormap.label.LabelLayer;
 import com.kakao.vectormap.label.LabelOptions;
+import com.kakao.vectormap.label.LabelStyle;
+
 import com.kakao.vectormap.shape.DotPoints;
 import com.kakao.vectormap.shape.Polygon;
 import com.kakao.vectormap.shape.PolygonOptions;
@@ -82,7 +89,7 @@ public class CreateGuestbookActivity extends AppCompatActivity {
     private boolean saving;
     private String selectedName;
     private int geoSeq;
-
+    private Bitmap pinBmp;
     private final ActivityResultLauncher<PickVisualMediaRequest> pickPhotos = registerForActivityResult(
             new ActivityResultContracts.PickMultipleVisualMedia(MAX_PHOTOS), uris -> {
                 for (Uri u : uris) {
@@ -164,13 +171,13 @@ public class CreateGuestbookActivity extends AppCompatActivity {
             }
 
             selected = coord;
-            if (selectedMarker == null) {
-                selectedMarker = labelLayer.addLabel(
-                        LabelOptions.from("selected-point", coord)
-                );
-            } else {
-                selectedMarker.moveTo(coord);
+            if (selectedMarker != null) {
+                labelLayer.remove(selectedMarker);
+                selectedMarker = null;
             }
+            selectedMarker = labelLayer.addLabel(
+                    LabelOptions.from("selected-point", coord)
+                            .setStyles(LabelStyle.from(pinBitmap()).setAnchorPoint(0.5f, 1.0f)));
 
             binding.tvSelectedLocation.setText(String.format(Locale.KOREA, "선택 위치: %.5f, %.5f (내 위치에서 %dm)",
                     coord.getLatitude(), coord.getLongitude(), (int) meters));
@@ -271,7 +278,8 @@ public class CreateGuestbookActivity extends AppCompatActivity {
             final double lng = selected.getLongitude();
             final double curLat = loc.getLatitude();
             final double curLng = loc.getLongitude();
-            final boolean isPrivate = binding.rbPrivate.isChecked();
+            final String visibility = binding.rbPrivate.isChecked() ? "PRIVATE"
+                    : (binding.rbFollowers.isChecked() ? "FOLLOWERS_ONLY" : "PUBLIC");
             final String locName = selectedName == null ? null
                     : (selectedName.length() > 100 ? selectedName.substring(0, 100) : selectedName);
 
@@ -286,7 +294,7 @@ public class CreateGuestbookActivity extends AppCompatActivity {
                     body.put("currentLatitude", curLat);
                     body.put("currentLongitude", curLng);
                     body.put("content", text);
-                    body.put("visibility", isPrivate ? "PRIVATE" : "PUBLIC");
+                    body.put("visibility", visibility);
                     body.put("photoPaths", paths);
                     if (locName != null) body.put("locationName", locName);
 
@@ -381,6 +389,29 @@ public class CreateGuestbookActivity extends AppCompatActivity {
         float[] r = new float[1];
         Location.distanceBetween(currentLocation.getLatitude(), currentLocation.getLongitude(), p.getLatitude(), p.getLongitude(), r);
         return r[0];
+    }
+
+    private Bitmap pinBitmap() {
+        if (pinBmp != null) return pinBmp;
+        float d = getResources().getDisplayMetrics().density;
+        int w = (int) (32 * d), h = (int) (44 * d);
+        Bitmap bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+        Canvas c = new Canvas(bmp);
+        Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
+        float r = w / 2f - 2 * d;
+        float cx = w / 2f, cy = r + 2 * d;
+        p.setColor(0xFFE53935);
+        c.drawCircle(cx, cy, r, p);
+        Path tail = new Path();
+        tail.moveTo(cx - r * 0.8f, cy + r * 0.6f);
+        tail.lineTo(cx, h - 2 * d);
+        tail.lineTo(cx + r * 0.8f, cy + r * 0.6f);
+        tail.close();
+        c.drawPath(tail, p);
+        p.setColor(Color.WHITE);
+        c.drawCircle(cx, cy, r * 0.38f, p);
+        pinBmp = bmp;
+        return bmp;
     }
 
     private void showMyLocationOnMap() {
