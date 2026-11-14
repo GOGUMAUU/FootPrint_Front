@@ -12,6 +12,9 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import com.example.footprint.api.ApiClient;
 import com.example.footprint.data.model.ApiResponse;
@@ -21,6 +24,7 @@ import com.example.footprint.databinding.ActivityMainBinding;
 import com.example.footprint.map.FootprintMapController;
 import com.example.footprint.ui.ChallengeActivity;
 import com.example.footprint.ui.CreateGuestbookActivity;
+import com.example.footprint.ui.FilterBottomSheetDialog;
 import com.example.footprint.ui.UserSearchActivity;
 import com.example.footprint.util.AppConfig;
 import com.example.footprint.util.MockGuestbooks;
@@ -58,6 +62,10 @@ public class MainActivity extends AppCompatActivity {
 
     private String mode = "nearby"; // nearby | following | me
     private String sort = "distance"; // 주변 모드 정렬: distance | popular
+
+    private Long selectedFollowingUserId = null;
+
+    private com.example.footprint.data.model.MapFilterState filterState = new com.example.footprint.data.model.MapFilterState();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -120,7 +128,22 @@ public class MainActivity extends AppCompatActivity {
             map.clearGuestbooks();
             scheduleReloadForCamera();
         });
-        binding.btnFilter.setOnClickListener(v -> Toast.makeText(this, "필터 UI: 연령대 · 최근 N일 · 인기/최신", Toast.LENGTH_SHORT).show());
+        //binding.btnFilter.setOnClickListener(v -> Toast.makeText(this, "필터 UI: 연령대 · 최근 N일 · 인기/최신", Toast.LENGTH_SHORT).show());
+        binding.btnFilter.setOnClickListener(v -> {
+            com.example.footprint.ui.FilterBottomSheetDialog dialog =
+                    com.example.footprint.ui.FilterBottomSheetDialog.newInstance(filterState, mode);
+            dialog.setOnFilterAppliedListener(newState -> {
+                this.filterState = newState;
+                map.clearGuestbooks();
+                scheduleReloadForCamera();
+            });
+            dialog.show(getSupportFragmentManager(), "FilterBottomSheet");
+        });
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
+        });
     }
 
     // ───────────────────────── 모드 ─────────────────────────
@@ -142,7 +165,7 @@ public class MainActivity extends AppCompatActivity {
                 map.moveCamera(currentLocation.getLatitude(), currentLocation.getLongitude(), (int) Math.round(AppConfig.ZOOM_REGION));
             } else {
                 ensureLocationPermissionAndLoad();
-                map.moveCamera(36.35, 127.8, (int) Math.round(AppConfig.ZOOM_REGION));
+                map.moveCamera(36.35, 127.8, (int) Math.round(AppConfig.ZOOM_COUNTRY));
             }
         } else {
             map.moveCamera(36.35, 127.8, (int) Math.round(AppConfig.ZOOM_COUNTRY));
@@ -308,8 +331,8 @@ public class MainActivity extends AppCompatActivity {
                     bounds[1],
                     bounds[2],
                     bounds[3],
-                    null,
-                    null,
+                    filterState.getPeriod(),
+                    filterState.getAgeGroup(),
                     zoom < AppConfig.ZOOM_DETAIL ? "popular" : "latest"
             );
             boundsCall.enqueue(new Callback<>() {
