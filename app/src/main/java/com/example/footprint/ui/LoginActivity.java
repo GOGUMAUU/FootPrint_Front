@@ -24,19 +24,24 @@ public class LoginActivity extends AppCompatActivity {
                 if (selection >= 0) field.setSelection(Math.min(selection, field.length()));
             }
         });
+        if (signup) binding.password.setHint("비밀번호 (8~64자)");
         if (signup && android.os.Build.VERSION.SDK_INT >= 26) {
             binding.password.setAutofillHints("newPassword");
             binding.confirmation.setAutofillHints("newPassword");
-            binding.password.setHint("비밀번호 (15~64자)");
         }
         AuthViewModel model = new ViewModelProvider(this).get(AuthViewModel.class);
+        // Signup temporarily accepts an empty consent list until policies are ready.
+        binding.readTerms.setVisibility(View.GONE);
+        binding.terms.setVisibility(View.GONE);
         binding.title.setText(signup ? "회원가입" : "로그인");
         binding.submit.setText(signup ? "가입하기" : "로그인");
         binding.switchMode.setText(signup ? "로그인으로 돌아가기" : "회원가입");
-        for (View view : new View[]{binding.confirmation, binding.nickname, binding.terms, binding.marketing}) view.setVisibility(signup ? View.VISIBLE : View.GONE);
+        for (View view : new View[]{binding.confirmation, binding.nickname}) view.setVisibility(signup ? View.VISIBLE : View.GONE);
+        binding.marketing.setVisibility(View.GONE);
         binding.switchMode.setOnClickListener(v -> { if (signup) finish(); else startActivity(new Intent(this, SignupActivity.class)); });
-        binding.submit.setOnClickListener(v -> model.submit(signup, binding.email.getText().toString().trim(), binding.password.getText().toString(),
-                binding.confirmation.getText().toString(), binding.nickname.getText().toString().trim(), binding.terms.isChecked(), binding.marketing.isChecked()));
+        binding.submit.setOnClickListener(v -> {
+            model.submit(signup, binding.email.getText().toString().trim(), binding.password.getText().toString(), binding.confirmation.getText().toString(), binding.nickname.getText().toString().trim(), false, java.util.Collections.emptyList());
+        });
         model.state().observe(this, state -> {
             binding.submit.setEnabled(!state.loading);
             binding.switchMode.setEnabled(!state.loading);
@@ -48,5 +53,9 @@ public class LoginActivity extends AppCompatActivity {
                 else { startActivity(new Intent(this, MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK)); finish(); }
             }
         });
+        if (com.example.footprint.data.repository.ProfileRepository.mock()) {
+            binding.title.setText((signup ? "회원가입" : "로그인") + " · 개발용 Mock");
+            if (!signup) binding.error.setText("demo@example.com / footprint-demo-2026\nMock 계정·세션은 앱 프로세스 종료 시 초기화됩니다.");
+        }
     }
 }

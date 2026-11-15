@@ -16,6 +16,7 @@ import javax.crypto.spec.GCMParameterSpec;
 
 /** Stores the token pair atomically as a single authenticated ciphertext. */
 public final class TokenManager {
+    public static final androidx.lifecycle.MutableLiveData<Boolean> sessionInvalidated = new androidx.lifecycle.MutableLiveData<>(false);
     private static final String ALIAS = "footprint.auth.v1";
     private final SharedPreferences preferences;
     private final Gson gson = new Gson();
@@ -58,8 +59,9 @@ public final class TokenManager {
             String value = Base64.encodeToString(cipher.getIV(), Base64.NO_WRAP) + ":"
                     + Base64.encodeToString(cipher.doFinal(gson.toJson(tokens).getBytes(StandardCharsets.UTF_8)), Base64.NO_WRAP);
             if (!preferences.edit().putString("pair", value).commit()) throw new IllegalStateException("Token persistence failed");
+            sessionInvalidated.postValue(false);
         } catch (Exception e) { throw new IllegalStateException("Cannot securely store credentials", e); }
     }
 
-    public synchronized void clear() { preferences.edit().clear().commit(); }
+    public synchronized void clear() { preferences.edit().clear().commit(); sessionInvalidated.postValue(true); }
 }

@@ -1,10 +1,14 @@
 package com.example.footprint.api;
 
+import com.example.footprint.data.model.ApiResponse;
 import com.example.footprint.data.model.Challenge;
 import com.example.footprint.data.model.ChallengeListResponse;
 import com.example.footprint.data.model.BadgeListResponse;
 import com.example.footprint.data.model.Guestbook;
+import com.example.footprint.data.model.GuestbookDetail;
+import com.example.footprint.data.model.NearbyGuestbookResponse;
 import com.example.footprint.data.model.UserSummary;
+import com.example.footprint.data.model.PageResponse;
 
 import java.util.List;
 import java.util.Map;
@@ -17,33 +21,53 @@ import retrofit2.http.DELETE;
 import retrofit2.http.GET;
 import retrofit2.http.Multipart;
 import retrofit2.http.POST;
+import retrofit2.http.PUT;
 import retrofit2.http.Part;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
 
 public interface ApiService {
+    @DELETE("api/guestbooks/{guestbookId}")
+    Call<Void> deleteGuestbook(@Path("guestbookId") long guestbookId);
+
+    @PUT("api/guestbooks/{guestbookId}")
+    Call<GuestbookDetail> updateGuestbook(
+            @Path("guestbookId") long guestbookId,
+            @Body Map<String, Object> body);
+
+    @GET("api/guestbooks/{guestbookId}")
+    Call<GuestbookDetail> getGuestbookDetail(
+            @Path("guestbookId") long guestbookId,
+            @Query("lat") Double lat,
+            @Query("lng") Double lng);
+
     @GET("api/maps/guestbooks/nearby")
-    Call<List<Guestbook>> getNearbyGuestbooks(
-            @Query("lat") double lat,
-            @Query("lng") double lng,
-            @Query("zoom") double zoom,
-            @Query("radiusMeters") double radiusMeters,
-            @Query("ageBand") String ageBand,
-            @Query("recentDays") Integer recentDays,
+    Call<ApiResponse<NearbyGuestbookResponse>> getNearbyGuestbooks(
+            @Query("latitude") double latitude,
+            @Query("longitude") double longitude,
+            @Query("zoomLevel") int zoomLevel,
             @Query("sort") String sort);
 
     @POST("api/maps/guestbooks/{guestbookId}/check-distance")
-    Call<Map<String, Object>> checkDistance(@Path("guestbookId") String guestbookId,
-                                            @Body Map<String, Double> location);
+    Call<Void> checkDistance(@Path("guestbookId") String guestbookId,
+                        @Body Map<String, Double> location);
 
     @GET("api/maps/guestbooks/bound")
-    Call<List<Guestbook>> getGuestbooksInBounds(@Query("scope") String scope,
-                                                 @Query("userId") String userId,
-                                                 @Query("zoom") double zoom,
-                                                 @Query("south") double south,
-                                                 @Query("west") double west,
-                                                 @Query("north") double north,
-                                                 @Query("east") double east);
+    Call<List<Guestbook>> getGuestbooksInBounds(
+            @Query("scope") String scope,
+            @Query("targetUserId") Long targetUserId,
+            @Query("zoom") double zoom,
+            @Query("southLat") double southLat,
+            @Query("westLng") double westLng,
+            @Query("northLat") double northLat,
+            @Query("eastLng") double eastLng,
+            @Query("period") String period,
+            @Query("ageGroup") String ageGroup,
+            @Query("sort") String sort);
+
+    @GET("api/maps/search")
+    Call<ApiResponse<List>> searchPlaces(
+            @Query("keyword") String keyword);
 
     @GET("api/guestbooks/{guestbookId}")
     Call<Guestbook> getGuestbook(@Path("guestbookId") String guestbookId);
@@ -51,10 +75,14 @@ public interface ApiService {
     @POST("api/guestbooks")
     Call<Guestbook> createGuestbook(@Body Map<String, Object> body);
 
+
+    @GET("api/places/reverse")
+    Call<Map<String, String>> reverseGeocode(@Query("lat") double lat, @Query("lng") double lng);
+
     @Multipart
     @POST("api/guestbook-photos")
     Call<Map<String, String>> uploadPhoto(@Part MultipartBody.Part file,
-                                          @Part("purpose") RequestBody purpose);
+                      @Part("purpose") RequestBody purpose);
 
     @Multipart
     @POST("api/guestbook-photos")
@@ -75,9 +103,10 @@ public interface ApiService {
     Call<Void> report(@Path("guestbookId") String guestbookId, @Body Map<String, String> body);
 
     @GET("api/users/search")
-    Call<List<UserSummary>> searchUsers(@Query("q") String query);
+    Call<com.example.footprint.data.model.UserPage> searchUsers(@Query("q") String query,
+            @Query("type") String type, @Query("page") int page, @Query("size") int size);
 
-    @POST("api/users/{userId}/follow-requests")
+    @POST("api/follows/{userId}")
     Call<Void> requestFollow(@Path("userId") String userId);
 
     @POST("api/follow-requests/{followId}/accept")
@@ -91,15 +120,41 @@ public interface ApiService {
     Call<ChallengeListResponse> getChallenges();
 
     @POST("api/challenges/{challengeId}/verify-location")
-    Call<Map<String, Object>> verifyChallengeLocation(@Path("challengeId") String challengeId,
-                                                       @Body Map<String, Double> location);
+    Call<Void> verifyChallengeLocation(@Path("challengeId") String challengeId,
+                                  @Body Map<String, Double> location);
 
     @POST("api/challenges/{challengeId}/submissions")
     Call<Void> submitChallenge(@Path("challengeId") String challengeId,
                                @Body Map<String, Object> body);
 
+
     // 현재 사용자가 획득한 배지 목록 조회
     @GET("api/badges/my")
     Call<BadgeListResponse> getMyBadges();
 
+    @GET("api/guestbooks/me")
+    Call<PageResponse<Guestbook>> getMyGuestbooks(
+            @Query("period") String period,
+            @Query("sort") String sort,
+            @Query("page") int page,
+            @Query("size") int size
+    );
+
+    @GET("api/guestbooks/users/{userId}")
+    Call<PageResponse<Guestbook>> getUserGuestbooks(
+            @Path("userId") long userId,
+            @Query("period") String period,
+            @Query("sort") String sort,
+            @Query("page") int page,
+            @Query("size") int size
+    );
+
+    @GET("api/users/me")
+    Call<UserSummary> getMyProfile();
+
+    @GET("api/users/{userId}/following")
+    Call<List<UserSummary>> getUserFollowing(
+            @Path("userId") long userId
+    );
 }
+

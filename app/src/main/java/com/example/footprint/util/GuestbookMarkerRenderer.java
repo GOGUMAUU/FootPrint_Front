@@ -6,14 +6,10 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.RectF;
 
-import com.naver.maps.map.overlay.Marker;
-import com.naver.maps.map.overlay.OverlayImage;
-
 public final class GuestbookMarkerRenderer {
     private GuestbookMarkerRenderer() {}
 
-    // Simple speech-bubble marker prototype. Replace inner block with photo thumbnail rendering (Glide -> Bitmap) later.
-    public static void apply(Context context, Marker marker, String shortText, boolean representative) {
+    public static Bitmap createMarkerBitmap(Context context, String shortText, boolean representative) {
         float density = context.getResources().getDisplayMetrics().density;
         int w = (int) ((representative ? 150 : 190) * density);
         int h = (int) ((representative ? 64 : 82) * density);
@@ -36,11 +32,6 @@ public final class GuestbookMarkerRenderer {
         tail.lineTo(w/2f, h);
         tail.close();
         canvas.drawPath(tail, p);
-        marker.setIcon(OverlayImage.fromBitmap(bitmap));
-        marker.setWidth(w);
-        marker.setHeight(h);
-        marker.setAnchor(new android.graphics.PointF(0.5f, 1f));
-        marker.setHideCollidedMarkers(true);
-        marker.setHideCollidedSymbols(true);
+        return bitmap;
     }
 }

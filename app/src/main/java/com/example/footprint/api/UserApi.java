@@ -15,4 +15,5 @@ public interface UserApi {
     @Multipart @POST("api/users/me/profile-image")
     Call<JsonObject> uploadImage(@Part MultipartBody.Part image);
     @DELETE("api/users/me/profile-image") Call<Void> deleteImage();
+    @DELETE("api/users/me/profile-image") Call<JsonObject> deleteImageResponse();
 }

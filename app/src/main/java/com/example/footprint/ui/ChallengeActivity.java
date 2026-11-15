@@ -59,6 +59,12 @@ public class ChallengeActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
+        // 로그인하지 않은 사용자는 로그인 화면으로 이동
+        if (!com.example.footprint.security.Session.signedIn(this)) {
+            com.example.footprint.security.Session.login(this);
+            return;
+        }
 
         binding = ActivityChallengeBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
@@ -134,7 +140,7 @@ public class ChallengeActivity extends AppCompatActivity {
 
         // 처음에는 전체 필터 선택
         selectFilter("all");
-    }
+        }
 
     @Override
     protected void onResume() {

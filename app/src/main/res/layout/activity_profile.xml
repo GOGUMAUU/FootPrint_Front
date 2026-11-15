@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent">
+ <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="24dp">
+  <TextView android:id="@+id/title" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="프로필" android:textSize="26sp" />
+  <ImageView android:id="@+id/photo" android:layout_width="120dp" android:layout_height="120dp" android:contentDescription="프로필 사진" android:src="@android:drawable/ic_menu_myplaces" />
+  <TextView android:id="@+id/details" android:layout_width="match_parent" android:layout_height="wrap_content" android:textIsSelectable="true" />
+  <Button android:id="@+id/copyCode" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="친구 코드 복사" />
+  <EditText android:id="@+id/nickname" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="닉네임" android:inputType="textPersonName" />
+  <CheckBox android:id="@+id/privateAccount" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="비공개 계정" />
+  <Button android:id="@+id/chooseImage" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="사진 선택" />
+  <Button android:id="@+id/deleteImage" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="사진 삭제" />
+  <Button android:id="@+id/save" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="프로필 저장" />
+  <Button android:id="@+id/retry" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="새로고침" />
+  <Button android:id="@+id/follow" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="팔로우" />
+  <Button android:id="@+id/block" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="차단" />
+  <Button android:id="@+id/settings" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="계정 설정" />
+  <TextView android:id="@+id/error" android:layout_width="match_parent" android:layout_height="wrap_content" android:accessibilityLiveRegion="polite" />
+ </LinearLayout>
+</ScrollView>
