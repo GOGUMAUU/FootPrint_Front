@@ -13,6 +13,9 @@ import com.example.footprint.databinding.ItemBadgeBinding;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.bumptech.glide.Glide;
+import com.example.footprint.R;
+
 public class BadgeAdapter
         extends RecyclerView.Adapter<BadgeAdapter.BadgeViewHolder> {
 
@@ -57,14 +60,24 @@ public class BadgeAdapter
         );
 
         // 획득 날짜 표시
-        holder.binding.tvBadgeDate.setText(
-                badge.earnedAt != null ? badge.earnedAt : ""
-        );
+        String earnedDate = "";
 
-        // 임시 기본 배지 아이콘
-        holder.binding.ivBadgeIcon.setImageResource(
-                android.R.drawable.btn_star_big_on
-        );
+        if (badge.earnedAt != null && badge.earnedAt.length() >= 10) {
+            earnedDate = badge.earnedAt
+                    .substring(0, 10)
+                    .replace("-", ".");
+        }
+
+        holder.binding.tvBadgeDate.setText(earnedDate);
+
+
+        Glide.with(holder.itemView)
+                .load(badge.iconUrl)
+                .placeholder(R.drawable.ic_badge_default)
+                .error(R.drawable.ic_badge_default)
+                .fallback(R.drawable.ic_badge_default)
+                .into(holder.binding.ivBadgeIcon);
+
     }
 
     @Override

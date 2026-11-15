@@ -2,6 +2,7 @@ package com.example.footprint.api;
 
 import com.example.footprint.data.model.Challenge;
 import com.example.footprint.data.model.ChallengeListResponse;
+import com.example.footprint.data.model.BadgeListResponse;
 import com.example.footprint.data.model.Guestbook;
 import com.example.footprint.data.model.UserSummary;
 
@@ -96,4 +97,9 @@ public interface ApiService {
     @POST("api/challenges/{challengeId}/submissions")
     Call<Void> submitChallenge(@Path("challengeId") String challengeId,
                                @Body Map<String, Object> body);
+
+    // 현재 사용자가 획득한 배지 목록 조회
+    @GET("api/badges/my")
+    Call<BadgeListResponse> getMyBadges();
+
 }
