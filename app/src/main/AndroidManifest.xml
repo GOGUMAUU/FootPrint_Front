@@ -16,11 +16,6 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.FootPrint">
 
-      
-        <meta-data
-            android:name="com.naver.maps.map.NCP_KEY_ID"
-            android:value="${NAVER_MAP_CLIENT_ID}" />
-
         <activity
             android:name=".ui.MyBadgesActivity"
             android:exported="false" />

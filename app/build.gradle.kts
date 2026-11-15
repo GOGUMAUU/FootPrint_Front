@@ -76,6 +76,9 @@ dependencies {
     // Location Services (GPS)
     implementation("com.google.android.gms:play-services-location:21.0.1")
 
+    // SwipeRefreshLayout (당겨서 새로고침)
+    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
+
     // Coroutines (비동기 처리)
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
 

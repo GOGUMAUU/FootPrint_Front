@@ -120,8 +120,10 @@ public interface ApiService {
     Call<ChallengeListResponse> getChallenges();
 
     @POST("api/challenges/{challengeId}/verify-location")
-    Call<Void> verifyChallengeLocation(@Path("challengeId") String challengeId,
-                                  @Body Map<String, Double> location);
+    Call<Map<String, Object>> verifyChallengeLocation(
+            @Path("challengeId") String challengeId,
+            @Body Map<String, Double> location
+    );
 
     @POST("api/challenges/{challengeId}/submissions")
     Call<Void> submitChallenge(@Path("challengeId") String challengeId,
