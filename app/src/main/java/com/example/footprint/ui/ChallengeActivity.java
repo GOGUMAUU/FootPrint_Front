@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.footprint.MainActivity;
 import com.example.footprint.R;
+import com.example.footprint.api.ApiClient;
 import com.example.footprint.databinding.ActivityChallengeBinding;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -30,6 +31,17 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.Priority;
 import com.google.android.gms.tasks.CancellationTokenSource;
 
+import com.example.footprint.api.ApiService;
+import com.example.footprint.data.model.ChallengeListResponse;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
+
+import android.util.Log;
+import android.widget.Toast;
 
 public class ChallengeActivity extends AppCompatActivity {
 
@@ -74,7 +86,7 @@ public class ChallengeActivity extends AppCompatActivity {
             finish();
         });
 
-// 내 배지 버튼 클릭 시 배지 화면으로 이동
+        // 내 배지 버튼 클릭 시 배지 화면으로 이동
         binding.btnMyBadges.setOnClickListener(v -> {
 
             Intent intent = new Intent(
@@ -111,12 +123,29 @@ public class ChallengeActivity extends AppCompatActivity {
 
         binding.rvAchievableChallenges.setAdapter(challengeAdapter);
 
-        // 임시 도전과제 데이터
-        loadSampleChallenges();
+
+        // 백엔드에서 실제 도전과제 목록 불러오기
+        loadChallenges();
+
+        // 아래로 당겨서 새로고침
+        binding.swipeRefreshLayout.setOnRefreshListener(() -> {
+            loadChallenges();
+        });
 
         // 처음에는 전체 필터 선택
         selectFilter("all");
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        // 상세 화면에서 돌아왔을 때 도전과제 목록 갱신
+        if (challengeAdapter != null) {
+            loadChallenges();
+        }
+    }
+
 
     // 선택된 필터 변경
     private void selectFilter(String filter) {
@@ -168,29 +197,117 @@ public class ChallengeActivity extends AppCompatActivity {
         );
     }
 
-    // 테스트용 임시 데이터
-    private void loadSampleChallenges() {
-        allChallenges.clear();
+    // 실제 도전과제 목록
+    private void loadChallenges() {
 
-        Challenge first = new Challenge();
-        first.id = "1";
-        first.title = "지역 탐방 도전과제";
-        first.regionName = "서울";
-        allChallenges.add(first);
+        ApiService apiService = ApiClient.get();
 
-        Challenge second = new Challenge();
-        second.id = "2";
-        second.title = "나만의 여행 기록";
-        second.regionName = "부산";
-        allChallenges.add(second);
+        apiService.getChallenges().enqueue(
+                new Callback<ChallengeListResponse>() {
 
-        Challenge third = new Challenge();
-        third.id = "3";
-        third.title = "친구의 여행 도전과제";
-        third.regionName = "제주";
-        allChallenges.add(third);
+                    @Override
+                    public void onResponse(
+                            Call<ChallengeListResponse> call,
+                            Response<ChallengeListResponse> response
+                    ) {
+                        binding.swipeRefreshLayout.setRefreshing(false);
+                        if (response.isSuccessful()
+                                && response.body() != null) {
+                            Log.d("ChallengeAPI",
+                                    "전체 도전과제 수: " + response.body().LocalChallenges_totalCount);
 
-        challengeAdapter.setChallenges(allChallenges);
+                            for (ChallengeListResponse.ChallengeItem item : response.body().challenges) {
+                                Log.d("ChallengeAPI",
+                                        "도전과제 ID: " + item.challengeId
+                                                + ", 제목: " + item.title
+                                                + ", 완료 여부: " + item.isCompleted);
+                            }
+
+                            allChallenges.clear();
+
+                            for (ChallengeListResponse.ChallengeItem item
+                                    : response.body().challenges) {
+
+
+                                Challenge challenge = new Challenge();
+                                challenge.id = String.valueOf(item.challengeId);
+                                challenge.title = item.title;
+                                challenge.regionName = item.region;
+                                challenge.isCompleted = item.isCompleted;
+
+                                // 서버에서 받은 도전과제 목표 좌표 저장
+                                challenge.latitude = item.latitude;
+                                challenge.longitude = item.longitude;
+
+                                allChallenges.add(challenge);
+
+                            }
+
+                            challengeAdapter.setChallenges(allChallenges);
+                            updateChallengeDistances();
+
+                        } else {
+                            Log.e("ChallengeAPI",
+                                    "목록 조회 실패: " + response.code());
+
+                            Toast.makeText(
+                                    ChallengeActivity.this,
+                                    "도전과제 목록을 불러오지 못했습니다.",
+                                    Toast.LENGTH_SHORT
+                            ).show();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(
+                            Call<ChallengeListResponse> call,
+                            Throwable t
+                    ) {
+                        binding.swipeRefreshLayout.setRefreshing(false);
+                        Log.e("ChallengeAPI", "서버 연결 실패", t);
+
+                        Toast.makeText(
+                                ChallengeActivity.this,
+                                "서버에 연결할 수 없습니다.",
+                                Toast.LENGTH_SHORT
+                        ).show();
+                    }
+                }
+        );
+    }
+
+    private void updateChallengeDistances() {
+
+        // 현재 위치를 가져오지 못했다면 기존 순서 유지
+        if (currentLocation == null) {
+            return;
+        }
+
+        // 각 도전과제까지의 거리 계산
+        for (Challenge challenge : allChallenges) {
+
+            float[] results = new float[1];
+
+            Location.distanceBetween(
+                    currentLocation.getLatitude(),
+                    currentLocation.getLongitude(),
+                    challenge.latitude,
+                    challenge.longitude,
+                    results
+            );
+
+            challenge.distanceMeters = results[0];
+        }
+
+        // 현재 위치에서 가까운 도전과제부터 정렬
+        allChallenges.sort((a, b) ->
+                Float.compare(a.distanceMeters, b.distanceMeters)
+        );
+
+        // 정렬된 목록을 화면에 반영
+        if (challengeAdapter != null) {
+            challengeAdapter.setChallenges(allChallenges);
+        }
     }
 
 
@@ -251,6 +368,7 @@ public class ChallengeActivity extends AppCompatActivity {
 
             if (location != null) {
                 currentLocation = location;
+                updateChallengeDistances();
 
                 binding.tvCurrentLocation.setText(
                         "현재 위치 확인 완료"

@@ -157,16 +157,26 @@
     </HorizontalScrollView>
 
 
-    <!-- 도전과제 목록 -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvAchievableChallenges"
+
+    <!-- 아래로 당겨서 새로고침 -->
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipeRefreshLayout"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:paddingStart="8dp"
-        android:paddingEnd="8dp"
-        android:paddingBottom="12dp"
-        android:clipToPadding="false"
-        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+        android:layout_weight="1">
+
+        <!-- 도전과제 목록 -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvAchievableChallenges"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:paddingBottom="12dp"
+            android:clipToPadding="false"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
+
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
 
 </LinearLayout>

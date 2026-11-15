@@ -44,16 +44,40 @@
                 android:maxLines="1"
                 android:ellipsize="end" />
 
-            <TextView
-                android:id="@+id/tvChallengeInfo"
+
+            <!-- 지역 및 거리 표시 -->
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="5dp"
-                android:text="지역 · 도전과제 설명"
-                android:textColor="#444444"
-                android:textSize="12sp"
-                android:maxLines="1"
-                android:ellipsize="end" />
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <!-- 지역 -->
+                <TextView
+                    android:id="@+id/tvChallengeInfo"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="충남 아산"
+                    android:textColor="#444444"
+                    android:textSize="12sp"
+                    android:maxLines="1"
+                    android:ellipsize="end" />
+
+                <!-- 현재 위치에서 도전과제까지의 거리 -->
+                <TextView
+                    android:id="@+id/tvChallengeDistance"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="거리 계산 중..."
+                    android:textColor="#444444"
+                    android:textSize="12sp"
+                    android:maxLines="1" />
+
+            </LinearLayout>
+
 
         </LinearLayout>
 

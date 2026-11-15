@@ -1,6 +1,7 @@
 package com.example.footprint.api;
 
 import com.example.footprint.data.model.Challenge;
+import com.example.footprint.data.model.ChallengeListResponse;
 import com.example.footprint.data.model.Guestbook;
 import com.example.footprint.data.model.UserSummary;
 
@@ -54,6 +55,12 @@ public interface ApiService {
     Call<Map<String, String>> uploadPhoto(@Part MultipartBody.Part file,
                                           @Part("purpose") RequestBody purpose);
 
+    @Multipart
+    @POST("api/guestbook-photos")
+    Call<Map<String, String>> uploadChallengePhoto(
+            @Part MultipartBody.Part file
+    );
+
     @POST("api/guestbooks/{guestbookId}/likes")
     Call<Void> like(@Path("guestbookId") String guestbookId);
 
@@ -78,8 +85,9 @@ public interface ApiService {
     @POST("api/follow-requests/{followId}/reject")
     Call<Void> rejectFollow(@Path("followId") String followId);
 
+
     @GET("api/challenges")
-    Call<List<Challenge>> getChallenges(@Query("lat") double lat, @Query("lng") double lng);
+    Call<ChallengeListResponse> getChallenges();
 
     @POST("api/challenges/{challengeId}/verify-location")
     Call<Map<String, Object>> verifyChallengeLocation(@Path("challengeId") String challengeId,
