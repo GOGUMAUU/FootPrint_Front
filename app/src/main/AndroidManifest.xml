@@ -31,7 +31,6 @@
         <activity android:name=".ui.RelationListActivity" android:exported="false" />
         <activity android:name=".ui.SignupActivity" android:exported="false" />
         <activity android:name=".ui.UserSearchActivity" />
-        <activity android:name=".ui.ProfileActivity" />
         <activity android:name=".ui.CreateGuestbookActivity" />
 
         <provider
