@@ -5,6 +5,7 @@
   <ImageView android:id="@+id/photo" android:layout_width="120dp" android:layout_height="120dp" android:contentDescription="프로필 사진" android:src="@android:drawable/ic_menu_myplaces" />
   <TextView android:id="@+id/details" android:layout_width="match_parent" android:layout_height="wrap_content" android:textIsSelectable="true" />
   <Button android:id="@+id/copyCode" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="친구 코드 복사" />
+  <Button android:id="@+id/seeMap" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="지도 보기" />
   <EditText android:id="@+id/nickname" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="닉네임" android:inputType="textPersonName" />
   <CheckBox android:id="@+id/privateAccount" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="비공개 계정" />
   <Button android:id="@+id/chooseImage" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="사진 선택" />

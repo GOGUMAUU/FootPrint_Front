@@ -3,11 +3,13 @@ package com.example.footprint.ui;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.widget.Button;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.footprint.R;
 import com.example.footprint.api.ApiClient;
 import com.example.footprint.data.model.MapFilterState;
 import com.example.footprint.databinding.ActivityProfileMapBinding;
@@ -47,23 +49,17 @@ public class ProfileMapActivity extends AppCompatActivity {
         String nickname = getIntent().getStringExtra("TARGET_USER_NICKNAME");
         if (nickname != null && !nickname.isEmpty()) {
             setTitle(nickname + "님의 발자국");
+            binding.tvTitle.setText(nickname + "님의 지도");
         }
 
         map = new FootprintMapController(this, binding.profileMapView);
         map.setOnGuestbookClickListener(this::openGuestbook);
         map.setOnCameraIdleListener((center, zoom) -> scheduleReload());
         map.start(() -> {
+            map.resetZoomRange();
+            map.clearRadiusLimit();
             map.moveCamera(36.35, 127.8, (int) Math.round(AppConfig.ZOOM_COUNTRY));
             scheduleReload();
-        });
-        binding.btnFilter.setOnClickListener(v -> {
-            FilterBottomSheetDialog dialog = FilterBottomSheetDialog.newInstance(filterState);
-            dialog.setOnFilterAppliedListener(newState -> {
-                this.filterState = newState;
-                map.clearGuestbooks();
-                scheduleReload();
-            });
-            dialog.show(getSupportFragmentManager(), "ProfileMapFilter");
         });
     }
     private void scheduleReload() {
@@ -120,6 +116,9 @@ public class ProfileMapActivity extends AppCompatActivity {
 
     private void openGuestbook(Guestbook g) {
         Toast.makeText(this, g.getShortText(), Toast.LENGTH_SHORT).show();
+        com.example.footprint.ui.GuestbookDetailDialog.open(
+                getSupportFragmentManager(), g.getId(), null, null
+        );
     }
 
     // ───────────────────────── 생명주기 관리 ─────────────────────────

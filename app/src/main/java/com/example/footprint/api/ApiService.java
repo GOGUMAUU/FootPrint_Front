@@ -138,5 +138,5 @@ public interface ApiService {
     Call<UserSummary> getMyProfile();
 
     @GET("api/users/{userId}/following")
-    Call<List<UserSummary>> getUserFollowing(@Path("userId") long userId);
+    Call<PageResponse<UserSummary>> getUserFollowing(@Path("userId") long userId);
 }

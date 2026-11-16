@@ -9,6 +9,7 @@ import androidx.annotation.Nullable;
 import com.example.footprint.R;
 import com.example.footprint.api.ApiClient;
 import com.example.footprint.data.model.MapFilterState;
+import com.example.footprint.data.model.PageResponse;
 import com.example.footprint.data.model.UserSummary;
 import com.example.footprint.databinding.DialogMapFilterBinding;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
@@ -133,16 +134,25 @@ public class FilterBottomSheetDialog extends BottomSheetDialogFragment {
             public void onResponse(@NonNull Call<UserSummary> call, @NonNull Response<UserSummary> response) {
                 if (!isAdded() || !response.isSuccessful() || response.body() == null || response.body().userId == null) return;
 
+                if (!response.isSuccessful() || response.body() == null) {
+                    android.util.Log.e("FollowingFilter", "1단계 프로필 실패: code=" + response.code());
+                    return;
+                }
+                if (response.body().userId == null) {
+                    android.util.Log.e("FollowingFilter", "1단계 userId가 null임 (DTO 필드명 확인 필요)");
+                    return;
+                }
+
                 long myUserId = response.body().userId;
 
                 // 2. 내 팔로잉 목록 조회 (/api/users/{userId}/following)
-                ApiClient.get().getUserFollowing(myUserId).enqueue(new Callback<List<UserSummary>>() {
+                ApiClient.get().getUserFollowing(myUserId).enqueue(new Callback<PageResponse<UserSummary>>() {
                     @Override
-                    public void onResponse(@NonNull Call<List<UserSummary>> call2,
-                                           @NonNull Response<List<UserSummary>> response2) {
-                        if (!isAdded() || !response2.isSuccessful() || response2.body() == null) return;
+                    public void onResponse(@NonNull Call<PageResponse<UserSummary>> call2,
+                                           @NonNull Response<PageResponse<UserSummary>> response2) {
+                        if (!isAdded() || !response2.isSuccessful() || response2.body() == null || response2.body().content == null) return;
 
-                        for (UserSummary user : response2.body()) {
+                        for (UserSummary user : response2.body().content) {
                             if (user == null || user.userId == null) continue;
                             Chip userChip = createUserChip(user.nickname, user.userId);
                             binding.chipGroupFollowing.addView(userChip);
@@ -154,12 +164,16 @@ public class FilterBottomSheetDialog extends BottomSheetDialogFragment {
                     }
 
                     @Override
-                    public void onFailure(@NonNull Call<List<UserSummary>> call2, @NonNull Throwable t) { }
+                    public void onFailure(@NonNull Call<PageResponse<UserSummary>> call2, @NonNull Throwable t) {
+                        android.util.Log.e("FollowingFilter", "팔로잉 조회 실패", t);
+                    }
                 });
             }
 
             @Override
-            public void onFailure(@NonNull Call<UserSummary> call, @NonNull Throwable t) { }
+            public void onFailure(@NonNull Call<UserSummary> call, @NonNull Throwable t) {
+                android.util.Log.e("FollowingFilter", "1단계 통신/파싱 에러", t);
+            }
         });
     }
 
