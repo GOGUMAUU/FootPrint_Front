@@ -69,6 +69,15 @@ public final class UserProfileActivity extends AppCompatActivity {
             if (image != null && image.startsWith("/")) image = okhttp3.HttpUrl.get(com.example.footprint.BuildConfig.API_BASE_URL).resolve(image).toString();
             Glide.with(this).load(image).placeholder(android.R.drawable.ic_menu_myplaces).error(android.R.drawable.ic_menu_myplaces).into(binding.photo);
         });
+        binding.seeMap.setOnClickListener(v -> {
+            com.example.footprint.data.model.UserProfile user = model.profile.getValue();
+            if (user == null || user.userId == null) return;
+
+            android.content.Intent intent = new android.content.Intent(this, ProfileMapActivity.class);
+            intent.putExtra("TARGET_USER_ID", user.userId.longValue());
+            intent.putExtra("TARGET_USER_NICKNAME", user.nickname);
+            startActivity(intent);
+        });
         model.error.observe(this, binding.error::setText);
         model.busy.observe(this, busy -> { for (View view : new View[]{binding.save,binding.chooseImage,binding.deleteImage,binding.retry,binding.follow,binding.block}) view.setEnabled(!busy); });
         if (model.profile.getValue() == null) model.load(id);
