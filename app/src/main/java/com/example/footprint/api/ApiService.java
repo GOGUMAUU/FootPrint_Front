@@ -2,6 +2,8 @@ package com.example.footprint.api;
 
 import com.example.footprint.data.model.ApiResponse;
 import com.example.footprint.data.model.Challenge;
+import com.example.footprint.data.model.ChallengeListResponse;
+import com.example.footprint.data.model.BadgeListResponse;
 import com.example.footprint.data.model.Guestbook;
 import com.example.footprint.data.model.GuestbookDetail;
 import com.example.footprint.data.model.NearbyGuestbookResponse;
@@ -82,6 +84,12 @@ public interface ApiService {
     Call<Map<String, String>> uploadPhoto(@Part MultipartBody.Part file,
                       @Part("purpose") RequestBody purpose);
 
+    @Multipart
+    @POST("api/guestbook-photos")
+    Call<Map<String, String>> uploadChallengePhoto(
+            @Part MultipartBody.Part file
+    );
+
     @POST("api/guestbooks/{guestbookId}/likes")
     Call<Void> like(@Path("guestbookId") String guestbookId);
 
@@ -107,16 +115,24 @@ public interface ApiService {
     @POST("api/follow-requests/{followId}/reject")
     Call<Void> rejectFollow(@Path("followId") String followId);
 
+
     @GET("api/challenges")
-    Call<List<Challenge>> getChallenges(@Query("lat") double lat, @Query("lng") double lng);
+    Call<ChallengeListResponse> getChallenges();
 
     @POST("api/challenges/{challengeId}/verify-location")
-    Call<Void> verifyChallengeLocation(@Path("challengeId") String challengeId,
-                                  @Body Map<String, Double> location);
+    Call<Map<String, Object>> verifyChallengeLocation(
+            @Path("challengeId") String challengeId,
+            @Body Map<String, Double> location
+    );
 
     @POST("api/challenges/{challengeId}/submissions")
     Call<Void> submitChallenge(@Path("challengeId") String challengeId,
                                @Body Map<String, Object> body);
+
+
+    // 현재 사용자가 획득한 배지 목록 조회
+    @GET("api/badges/my")
+    Call<BadgeListResponse> getMyBadges();
 
     @GET("api/guestbooks/me")
     Call<PageResponse<Guestbook>> getMyGuestbooks(
@@ -134,6 +150,7 @@ public interface ApiService {
             @Query("page") int page,
             @Query("size") int size
     );
+
     @GET("api/users/me")
     Call<UserSummary> getMyProfile();
 
