@@ -4,7 +4,7 @@ public final class AppConfig {
     private AppConfig() {}
 
     // 서버 없이 테스트할 때 true (MockGuestbooks 사용)
-    public static final boolean USE_MOCK_DATA = true;
+    public static final boolean USE_MOCK_DATA = false;
 
     // Product assumptions: easy to change before backend contracts are frozen.
     // 서버 MapService.NEARBY_RADIUS_KM 과 같은 값이어야 함 (서버가 내 위치 기준 1km만 내려줌)
