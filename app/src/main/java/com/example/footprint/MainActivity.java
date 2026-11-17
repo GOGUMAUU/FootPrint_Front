@@ -27,7 +27,6 @@ import com.example.footprint.ui.CreateGuestbookActivity;
 import com.example.footprint.ui.FilterBottomSheetDialog;
 import com.example.footprint.ui.UserSearchActivity;
 import com.example.footprint.util.AppConfig;
-import com.example.footprint.util.MockGuestbooks;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
@@ -286,11 +285,6 @@ public class MainActivity extends AppCompatActivity {
 
         if ("nearby".equals(mode)) {
             if (currentLocation == null) return;
-            if (AppConfig.USE_MOCK_DATA) {
-                renderGuestbooks(MockGuestbooks.nearby(
-                        currentLocation.getLatitude(), currentLocation.getLongitude(), zoom, sort), zoom);
-                return;
-            }
             if (nearbyCall != null && !nearbyCall.isCanceled()) nearbyCall.cancel();
             nearbyCall = ApiClient.get().getNearbyGuestbooks(
                     currentLocation.getLatitude(),
@@ -316,12 +310,6 @@ public class MainActivity extends AppCompatActivity {
         } else {
             double[] bounds = map.estimateVisibleBounds();
             if (bounds == null) return;
-            if (AppConfig.USE_MOCK_DATA) {
-                renderGuestbooks(MockGuestbooks.inBounds(
-                        "following".equals(mode) ? "following" : "me", bounds, zoom,
-                        zoom < AppConfig.ZOOM_DETAIL ? "popular" : "latest"), zoom);
-                return;
-            }
             if (boundsCall != null && !boundsCall.isCanceled()) boundsCall.cancel();
             boundsCall = ApiClient.get().getGuestbooksInBounds(
                     "following".equals(mode) ? "following" : "me",
