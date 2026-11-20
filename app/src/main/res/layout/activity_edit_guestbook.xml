@@ -1,31 +1,267 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#FFF6DC"
     android:fitsSystemWindows="true">
 
-    <LinearLayout
+    <ImageView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="16dp">
+        android:layout_height="140dp"
+        android:layout_gravity="bottom"
+        android:importantForAccessibility="no"
+        android:scaleType="fitXY"
+        android:src="@drawable/ic_fp_hills" />
 
-        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="방명록 수정" android:textStyle="bold" android:textSize="18sp" />
-        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="장소는 수정할 수 없어요." android:textColor="#8A7B63" android:paddingTop="4dp" />
-        <TextView android:id="@+id/tvPhotoCount" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="사진 0/3" android:paddingTop="16dp" />
-        <HorizontalScrollView android:layout_width="match_parent" android:layout_height="wrap_content" android:scrollbars="none">
-            <LinearLayout android:id="@+id/photoContainer" android:layout_width="wrap_content" android:layout_height="wrap_content" android:minHeight="72dp" android:orientation="horizontal" />
-        </HorizontalScrollView>
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
-            <Button android:id="@+id/btnPickPhoto" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="갤러리" />
-            <Button android:id="@+id/btnTakePhoto" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="카메라" />
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="18dp"
+            android:paddingTop="20dp"
+            android:paddingEnd="18dp"
+            android:paddingBottom="24dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:id="@+id/btnBack"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:background="@drawable/bg_fp_back"
+                    android:contentDescription="뒤로가기"
+                    android:padding="11dp"
+                    android:src="@drawable/ic_fp_back" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:fontFamily="@font/jua"
+                    android:text="방명록 수정"
+                    android:textColor="#2F7A44"
+                    android:textSize="28sp" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvPlaceNotice"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:background="@drawable/bg_fp_notice"
+                android:drawableStart="@drawable/ic_fp_lock"
+                android:drawablePadding="10dp"
+                android:fontFamily="@font/gowun_dodum"
+                android:gravity="center_vertical"
+                android:paddingStart="14dp"
+                android:paddingTop="10dp"
+                android:paddingEnd="14dp"
+                android:paddingBottom="10dp"
+                android:text="장소는 수정할 수 없어요."
+                android:textColor="#6B430E"
+                android:textSize="15sp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:background="@drawable/bg_fp_card"
+                android:orientation="vertical"
+                android:paddingStart="21dp"
+                android:paddingTop="21dp"
+                android:paddingEnd="21dp"
+                android:paddingBottom="27dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/tvPhotoCount"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:fontFamily="@font/jua"
+                        android:text="사진 0/3"
+                        android:textColor="#5E4128"
+                        android:textSize="18sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/gowun_dodum"
+                        android:text="✕를 누르면 뺄 수 있어요"
+                        android:textColor="#7A5A3A"
+                        android:textSize="14sp" />
+                </LinearLayout>
+
+                <HorizontalScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:scrollbars="none">
+
+                    <LinearLayout
+                        android:id="@+id/photoContainer"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:minHeight="78dp"
+                        android:orientation="horizontal" />
+                </HorizontalScrollView>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:orientation="horizontal">
+
+                    <androidx.appcompat.widget.AppCompatButton
+                        android:id="@+id/btnPickPhoto"
+                        android:layout_width="0dp"
+                        android:layout_height="46dp"
+                        android:layout_marginEnd="5dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_fp_btn_sky"
+                        android:fontFamily="@font/jua"
+                        android:minHeight="0dp"
+                        android:paddingBottom="4dp"
+                        android:stateListAnimator="@null"
+                        android:text="갤러리"
+                        android:textAllCaps="false"
+                        android:textColor="#143F58"
+                        android:textSize="17sp" />
+
+                    <androidx.appcompat.widget.AppCompatButton
+                        android:id="@+id/btnTakePhoto"
+                        android:layout_width="0dp"
+                        android:layout_height="46dp"
+                        android:layout_marginStart="5dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_fp_btn_yellow"
+                        android:fontFamily="@font/jua"
+                        android:minHeight="0dp"
+                        android:paddingBottom="4dp"
+                        android:stateListAnimator="@null"
+                        android:text="카메라"
+                        android:textAllCaps="false"
+                        android:textColor="#5A3E00"
+                        android:textSize="17sp" />
+                </LinearLayout>
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp">
+
+                    <EditText
+                        android:id="@+id/etContent"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_fp_input_edit"
+                        android:fontFamily="@font/gowun_dodum"
+                        android:gravity="top|start"
+                        android:hint="짧은 글 (120자 이내)"
+                        android:maxLength="120"
+                        android:minHeight="96dp"
+                        android:paddingStart="14dp"
+                        android:paddingTop="12dp"
+                        android:paddingEnd="14dp"
+                        android:paddingBottom="26dp"
+                        android:textColor="#5E4128"
+                        android:textColorHint="#B7A27A"
+                        android:textSize="17sp" />
+
+                    <TextView
+                        android:id="@+id/tvCharCount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="bottom|end"
+                        android:layout_marginEnd="14dp"
+                        android:layout_marginBottom="8dp"
+                        android:fontFamily="@font/gowun_dodum"
+                        android:text="0/120"
+                        android:textColor="#7A5A3A"
+                        android:textSize="13sp" />
+                </FrameLayout>
+
+                <RadioGroup
+                    android:id="@+id/rgVisibility"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:checkedButton="@+id/rbPublic"
+                    android:orientation="horizontal">
+
+                    <RadioButton
+                        android:id="@+id/rbPublic"
+                        android:layout_width="0dp"
+                        android:layout_height="44dp"
+                        android:layout_marginEnd="4dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_fp_chip_edit"
+                        android:button="@null"
+                        android:fontFamily="@font/jua"
+                        android:gravity="center"
+                        android:text="전체 공개"
+                        android:textColor="@color/fp_chip_text"
+                        android:textSize="15sp" />
+
+                    <RadioButton
+                        android:id="@+id/rbFollowers"
+                        android:layout_width="0dp"
+                        android:layout_height="44dp"
+                        android:layout_marginStart="4dp"
+                        android:layout_marginEnd="4dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_fp_chip_edit"
+                        android:button="@null"
+                        android:fontFamily="@font/jua"
+                        android:gravity="center"
+                        android:text="팔로워 공개"
+                        android:textColor="@color/fp_chip_text"
+                        android:textSize="15sp" />
+
+                    <RadioButton
+                        android:id="@+id/rbPrivate"
+                        android:layout_width="0dp"
+                        android:layout_height="44dp"
+                        android:layout_marginStart="4dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_fp_chip_edit"
+                        android:button="@null"
+                        android:fontFamily="@font/jua"
+                        android:gravity="center"
+                        android:text="나만 보기"
+                        android:textColor="@color/fp_chip_text"
+                        android:textSize="15sp" />
+                </RadioGroup>
+
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/btnSave"
+                    android:layout_width="match_parent"
+                    android:layout_height="54dp"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/bg_fp_btn_coral"
+                    android:fontFamily="@font/jua"
+                    android:minHeight="0dp"
+                    android:paddingBottom="5dp"
+                    android:stateListAnimator="@null"
+                    android:text="수정 완료"
+                    android:textAllCaps="false"
+                    android:textColor="#4A2A1A"
+                    android:textSize="21sp" />
+            </LinearLayout>
         </LinearLayout>
-        <EditText android:id="@+id/etContent" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="짧은 글 (120자 이내)" android:maxLength="120" />
-        <RadioGroup android:id="@+id/rgVisibility" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:checkedButton="@+id/rbPublic" android:paddingTop="8dp">
-            <RadioButton android:id="@+id/rbPublic" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="전체 공개" />
-            <RadioButton android:id="@+id/rbFollowers" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="16dp" android:text="팔로워 공개" />
-            <RadioButton android:id="@+id/rbPrivate" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="16dp" android:text="나만 보기" />
-        </RadioGroup>
-        <Button android:id="@+id/btnSave" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="수정 완료" />
-    </LinearLayout>
-</ScrollView>
+    </ScrollView>
+</FrameLayout>

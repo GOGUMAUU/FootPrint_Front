@@ -17,6 +17,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.FileProvider;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.bitmap.CenterCrop;
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
+import com.example.footprint.R;
 import com.example.footprint.BuildConfig;
 import com.example.footprint.api.ApiClient;
 import com.example.footprint.data.model.GuestbookDetail;
@@ -110,6 +113,18 @@ public class EditGuestbookActivity extends AppCompatActivity {
         });
         binding.btnTakePhoto.setOnClickListener(v -> openCamera());
         binding.btnSave.setOnClickListener(v -> save());
+        binding.btnBack.setOnClickListener(v -> finish());
+        binding.tvCharCount.setText(binding.etContent.getText().length() + "/120");
+        binding.etContent.addTextChangedListener(new android.text.TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int a, int b, int c) {}
+            @Override public void onTextChanged(CharSequence s, int a, int b, int c) {}
+            @Override public void afterTextChanged(android.text.Editable s) {
+                binding.tvCharCount.setText(s.length() + "/120");
+            }
+        });
+        if (locationName != null && !locationName.isEmpty()) {
+            binding.tvPlaceNotice.setText("장소는 수정할 수 없어요. (" + locationName + ")");
+        }
         renderPhotos();
     }
 
@@ -134,30 +149,46 @@ public class EditGuestbookActivity extends AppCompatActivity {
         binding.photoContainer.removeAllViews();
         float d = getResources().getDisplayMetrics().density;
         int size = (int) (96 * d);
-        int pad = (int) (6 * d);
+        int frame = (int) (3 * d);
         for (Item item : items) {
             FrameLayout cell = new FrameLayout(this);
             LinearLayout.LayoutParams cellLp = new LinearLayout.LayoutParams(size, size);
-            cellLp.setMarginEnd((int) (8 * d));
+            cellLp.setMarginEnd((int) (10 * d));
             cell.setLayoutParams(cellLp);
 
             ImageView img = new ImageView(this);
             img.setScaleType(ImageView.ScaleType.CENTER_CROP);
-            if (item.path != null) Glide.with(this).load(com.example.footprint.util.AuthImage.of(this, fullUrl(item.path))).into(img);
-            else Glide.with(this).load(item.uri).into(img);
+            img.setBackgroundResource(R.drawable.bg_fp_photo_frame);
+            img.setPadding(frame, frame, frame, frame);
+            Object src = item.path != null
+                    ? com.example.footprint.util.AuthImage.of(this, fullUrl(item.path))
+                    : item.uri;
+            Glide.with(this).load(src)
+                    .transform(new CenterCrop(), new RoundedCorners((int) (17 * d)))
+                    .into(img);
             cell.addView(img, new FrameLayout.LayoutParams(size, size));
 
-            TextView x = new TextView(this);
-            x.setText("✕");
-            x.setTextColor(0xFFFFFFFF);
-            x.setBackgroundColor(0x99000000);
-            x.setPadding(pad, pad, pad, pad);
+            ImageView x = new ImageView(this);
+            x.setImageResource(R.drawable.ic_fp_x_white);
+            x.setBackgroundResource(R.drawable.bg_fp_remove);
+            x.setScaleType(ImageView.ScaleType.CENTER);
+            x.setContentDescription("사진 삭제");
             x.setOnClickListener(v -> { items.remove(item); renderPhotos(); });
-            cell.addView(x, new FrameLayout.LayoutParams(
-                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT,
-                    Gravity.TOP | Gravity.END));
+            FrameLayout.LayoutParams xLp = new FrameLayout.LayoutParams(
+                    (int) (28 * d), (int) (28 * d), Gravity.TOP | Gravity.END);
+            xLp.setMargins(0, (int) (4 * d), (int) (4 * d), 0);
+            cell.addView(x, xLp);
 
             binding.photoContainer.addView(cell);
+        }
+        if (items.size() < MAX_PHOTOS) {
+            ImageView add = new ImageView(this);
+            add.setImageResource(R.drawable.ic_fp_plus);
+            add.setBackgroundResource(R.drawable.bg_fp_add);
+            add.setScaleType(ImageView.ScaleType.CENTER);
+            add.setContentDescription("사진 추가");
+            add.setOnClickListener(v -> binding.btnPickPhoto.performClick());
+            binding.photoContainer.addView(add, new LinearLayout.LayoutParams(size, size));
         }
         binding.tvPhotoCount.setText("사진 " + items.size() + "/" + MAX_PHOTOS);
     }

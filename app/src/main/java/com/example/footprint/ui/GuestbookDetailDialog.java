@@ -19,6 +19,7 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.bitmap.CenterCrop;
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
 import com.example.footprint.BuildConfig;
+import com.example.footprint.R;
 import com.example.footprint.api.ApiClient;
 import com.example.footprint.data.model.GuestbookDetail;
 import com.example.footprint.databinding.DialogGuestbookDetailBinding;
@@ -134,9 +135,11 @@ public class GuestbookDetailDialog extends DialogFragment {
         binding.content.setVisibility(View.VISIBLE);
         binding.tvContent.setText(d.content);
         binding.tvTitle.setText(d.nickname == null || d.nickname.isEmpty() ? "방명록" : d.nickname + "의 방명록");
-        String meta = formatDate(d.createdAt);
-        if (d.locationName != null && !d.locationName.isEmpty()) meta += " · " + d.locationName;
-        binding.tvMeta.setText(meta);
+        boolean hasPlace = d.locationName != null && !d.locationName.isEmpty();
+        binding.tvChipPlace.setVisibility(hasPlace ? View.VISIBLE : View.GONE);
+        if (hasPlace) binding.tvChipPlace.setText(d.locationName);
+        binding.tvChipDate.setText(formatDateShort(d.createdAt));
+        binding.tvChipVis.setText(visibilityLabel(String.valueOf(d.visibility)));
         renderPhotos(d.photoUrls);
         binding.ownerRow.setVisibility(d.mine ? View.VISIBLE : View.GONE);
         binding.btnEdit.setTag(d);
@@ -156,15 +159,17 @@ public class GuestbookDetailDialog extends DialogFragment {
         if (urls == null || urls.isEmpty()) return;
         float d = getResources().getDisplayMetrics().density;
         int cardWidth = (int) (getResources().getDisplayMetrics().widthPixels * WIDTH_RATIO);
-        int inner = cardWidth - (int) (32 * d);
-        int w = urls.size() == 1 ? inner : (int) (inner * 0.82f);
-        int h = w * 3 / 4;
-        int radius = (int) (16 * d);
+        int w = (int) (206 * d);
+        int h = w;
+        int radius = (int) (21 * d);
         for (String path : urls) {
             ImageView img = new ImageView(requireContext());
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(w, h);
             lp.setMarginEnd((int) (8 * d));
             img.setLayoutParams(lp);
+            img.setBackgroundResource(R.drawable.bg_fp_photo_frame);
+            int pad = (int) (3 * d);
+            img.setPadding(pad, pad, pad, pad);
             Glide.with(this).load(com.example.footprint.util.AuthImage.of(requireContext(), fullUrl(path)))
                     .transform(new CenterCrop(), new RoundedCorners(radius))
                     .into(img);
@@ -183,6 +188,20 @@ public class GuestbookDetailDialog extends DialogFragment {
         if (iso == null) return "";
         String s = iso.replace('T', ' ');
         return s.length() > 16 ? s.substring(0, 16) : s;
+    }
+
+    private String formatDateShort(String iso) {
+        try {
+            return Integer.parseInt(iso.substring(5, 7)) + "월 " + Integer.parseInt(iso.substring(8, 10)) + "일";
+        } catch (Exception e) {
+            return formatDate(iso);
+        }
+    }
+
+    private String visibilityLabel(String v) {
+        if ("PRIVATE".equals(v)) return "나만 보기";
+        if ("FOLLOWERS_ONLY".equals(v)) return "팔로워 공개";
+        return "전체 공개";
     }
 
     // ---------- 열람 기록 ----------
@@ -211,12 +230,16 @@ public class GuestbookDetailDialog extends DialogFragment {
 
     // ---------- 삭제 ----------
     private void confirmDelete() {
-        new androidx.appcompat.app.AlertDialog.Builder(requireContext())
-                .setTitle("방명록 삭제")
-                .setMessage("이 방명록을 삭제할까요? 삭제하면 되돌릴 수 없어요.")
-                .setNegativeButton("취소", null)
-                .setPositiveButton("삭제", (d, w) -> doDelete())
-                .show();
+        View v = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_confirm_delete, null);
+        androidx.appcompat.app.AlertDialog dlg = new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                .setView(v).create();
+        if (dlg.getWindow() != null) dlg.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        v.findViewById(R.id.btnConfirmCancel).setOnClickListener(x -> dlg.dismiss());
+        v.findViewById(R.id.btnConfirmDelete).setOnClickListener(x -> {
+            dlg.dismiss();
+            doDelete();
+        });
+        dlg.show();
     }
 
     private void doDelete() {
@@ -247,8 +270,9 @@ public class GuestbookDetailDialog extends DialogFragment {
 
     // ---------- 좋아요 ----------
     private void renderLike() {
-        binding.btnLike.setText(liked ? "♥ 좋아요 취소" : "♡ 좋아요");
-        binding.tvLikeCount.setText("좋아요 " + likeCount);
+        binding.btnLike.setText("좋아요 " + likeCount);
+        binding.btnLike.setCompoundDrawablesRelativeWithIntrinsicBounds(
+                liked ? R.drawable.ic_fp_heart : R.drawable.ic_fp_heart_outline, 0, 0, 0);
     }
 
     private void toggleLike() {

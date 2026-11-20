@@ -302,8 +302,13 @@ public class FootprintMapController {
 
     /** 클러스터 클릭 → 줌인. 줌이 바뀌니 idle 이벤트를 막지 않아서 자동 재조회됨 */
     private void zoomIntoCluster(Guestbook g) {
+        int cur = getZoomLevel();
         int maxZoom = AppConfig.CLUSTER_MAX_ZOOM; // 서버가 이 줌부터 낱개로 내려줌
-        int zoom = Math.min(getZoomLevel() + 2, maxZoom);
-        moveCameraInternal(g.getLatitude(), g.getLongitude(), zoom, false);
+        if (cur >= maxZoom) {
+            // 이미 충분히 확대했는데도 묶여 있는 곳(같은 장소 여러 개): 줌을 바꾸지 않고 대표 글을 연다
+            if (guestbookClickListener != null) guestbookClickListener.onGuestbookClick(g);
+            return;
+        }
+        moveCameraInternal(g.getLatitude(), g.getLongitude(), Math.min(cur + 2, maxZoom), false);
     }
 }

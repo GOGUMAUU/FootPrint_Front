@@ -4,34 +4,98 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.Path;
 import android.graphics.RectF;
+import android.graphics.Typeface;
+import android.text.TextPaint;
+import android.text.TextUtils;
+
+import androidx.core.content.res.ResourcesCompat;
+
+import com.example.footprint.R;
 
 public final class GuestbookMarkerRenderer {
     private GuestbookMarkerRenderer() {}
 
+    // 주황, 노랑, 초록, 파랑, 보라
+    private static final int[] BORDER_COLORS = {
+            0xFFF5A04A, 0xFFF2C94C, 0xFF6FBF73, 0xFF5AB4E8, 0xFFA98BE0
+    };
+
     public static Bitmap createMarkerBitmap(Context context, String shortText, boolean representative) {
-        float density = context.getResources().getDisplayMetrics().density;
-        int w = (int) ((representative ? 150 : 190) * density);
-        int h = (int) ((representative ? 64 : 82) * density);
+        float d = context.getResources().getDisplayMetrics().density;
+        float maxW = context.getResources().getDisplayMetrics().widthPixels / 3f; // 폰 가로의 1/3
+
+        String text = (shortText == null || shortText.trim().isEmpty()) ? "방명록" : shortText.trim();
+        // 같은 글은 항상 같은 색 (지도를 움직여도 색이 안 바뀜)
+        int color = BORDER_COLORS[(text.hashCode() & 0x7fffffff) % BORDER_COLORS.length];
+
+        float stroke = 3 * d;
+        float padH = 12 * d;
+        float padV = 8 * d;
+        float tailH = 9 * d;
+        float tailW = 16 * d;
+        float margin = 4 * d; // 좌우·위 투명 여백 (누르기 쉽게)
+
+        TextPaint tp = new TextPaint(Paint.ANTI_ALIAS_FLAG);
+        tp.setColor(0xFF5E4128);
+        tp.setTextSize(14 * d);
+        try {
+            Typeface tf = ResourcesCompat.getFont(context, R.font.jua);
+            if (tf != null) tp.setTypeface(tf);
+        } catch (Exception ignored) {
+        }
+
+        float maxTextW = maxW - 2 * padH - 2 * stroke - 2 * margin;
+        CharSequence shown = TextUtils.ellipsize(text, tp, maxTextW, TextUtils.TruncateAt.END);
+        float textW = tp.measureText(shown, 0, shown.length());
+        Paint.FontMetrics fm = tp.getFontMetrics();
+        float textH = fm.descent - fm.ascent;
+
+        float bubbleW = textW + 2 * padH + stroke;
+        float bubbleH = textH + 2 * padV + stroke;
+        int w = (int) Math.ceil(bubbleW + 2 * margin);
+        int h = (int) Math.ceil(margin + bubbleH + tailH);
+
         Bitmap bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
-        Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
-        p.setColor(0xFFFFFFFF);
-        canvas.drawRoundRect(new RectF(2*density, 2*density, w-2*density, h-14*density), 18*density, 18*density, p);
-        p.setColor(0xFF2457E6);
-        canvas.drawCircle(22*density, 22*density, 12*density, p);
-        p.setColor(0xFF111111);
-        p.setTextSize((representative ? 12 : 13) * density);
-        String text = shortText == null ? "방명록" : shortText;
-        if (text.length() > 15) text = text.substring(0, 15) + "…";
-        canvas.drawText(text, 42*density, 28*density, p);
-        p.setColor(0xFFFFFFFF);
-        android.graphics.Path tail = new android.graphics.Path();
-        tail.moveTo(w/2f - 10*density, h-16*density);
-        tail.lineTo(w/2f + 10*density, h-16*density);
-        tail.lineTo(w/2f, h);
+        Paint fill = new Paint(Paint.ANTI_ALIAS_FLAG);
+        fill.setColor(0xFFFFFDF4);
+        Paint line = new Paint(Paint.ANTI_ALIAS_FLAG);
+        line.setStyle(Paint.Style.STROKE);
+        line.setStrokeWidth(stroke);
+        line.setStrokeJoin(Paint.Join.ROUND);
+        line.setStrokeCap(Paint.Cap.ROUND);
+        line.setColor(color);
+
+        float left = margin + stroke / 2f;
+        float top = margin + stroke / 2f;
+        float right = w - margin - stroke / 2f;
+        float bottom = margin + bubbleH - stroke / 2f;
+        RectF rect = new RectF(left, top, right, bottom);
+        float r = 16 * d;
+        canvas.drawRoundRect(rect, r, r, fill);
+        canvas.drawRoundRect(rect, r, r, line);
+
+        // 꼬리: 아래 가운데 끝이 실제 좌표를 가리킴
+        float cx = w / 2f;
+        float baseY = bottom - stroke / 2f - 0.5f;
+        Path tail = new Path();
+        tail.moveTo(cx - tailW / 2f, baseY);
+        tail.lineTo(cx, h - stroke / 2f);
+        tail.lineTo(cx + tailW / 2f, baseY);
         tail.close();
-        canvas.drawPath(tail, p);
+        canvas.drawPath(tail, fill);
+        Path sides = new Path();
+        sides.moveTo(cx - tailW / 2f, baseY);
+        sides.lineTo(cx, h - stroke / 2f);
+        sides.lineTo(cx + tailW / 2f, baseY);
+        canvas.drawPath(sides, line);
+
+        canvas.drawText(shown, 0, shown.length(),
+                left + stroke / 2f + padH,
+                (top + bottom) / 2f - (fm.ascent + fm.descent) / 2f,
+                tp);
         return bitmap;
     }
 }
