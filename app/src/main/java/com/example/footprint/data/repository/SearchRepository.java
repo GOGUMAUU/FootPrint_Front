@@ -34,8 +34,11 @@ public final class SearchRepository {
             user.nickname = String.format(Locale.ROOT, "산책친구 %02d", i);
             user.friendCode = String.format(Locale.ROOT, "FP%08d", i);
             user.following = "ACCEPTED".equals(MockRelations.status(i));
-            if (!q.isEmpty() && ("USER_CODE".equals(type)
-                    ? user.friendCode.equals(q.toUpperCase(Locale.ROOT)) : user.nickname.contains(q))) matches.add(user);
+            boolean nicknameMatches = user.nickname.contains(q);
+            boolean codeMatches = user.friendCode.equals(q.toUpperCase(Locale.ROOT));
+            boolean matchesType = "NICKNAME".equals(type) ? nicknameMatches
+                    : "USER_CODE".equals(type) ? codeMatches : nicknameMatches || codeMatches;
+            if (!q.isEmpty() && matchesType) matches.add(user);
         }
         UserPage result = new UserPage(); result.page = page; result.size = size;
         int start = (int) Math.min((long) page * size, matches.size());

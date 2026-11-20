@@ -1,18 +1,202 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true">
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="24dp">
-        <TextView android:id="@+id/title" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="로그인" android:textSize="28sp" />
-        <EditText android:id="@+id/email" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="이메일" android:inputType="textEmailAddress" android:autofillHints="emailAddress" />
-        <EditText android:id="@+id/password" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="비밀번호" android:inputType="textPassword" android:autofillHints="password" android:saveEnabled="false" />
-        <EditText android:id="@+id/confirmation" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="비밀번호 확인" android:inputType="textPassword" android:saveEnabled="false" />
-        <CheckBox android:id="@+id/showPassword" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="비밀번호 표시" android:saveEnabled="false" />
-        <EditText android:id="@+id/nickname" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="닉네임" android:inputType="textPersonName" />
-        <CheckBox android:id="@+id/terms" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="필수 약관 동의 (약관 내용 확인 필요)" />
-        <Button android:id="@+id/readTerms" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="약관 열람 / 다시 불러오기" />
-        <CheckBox android:id="@+id/marketing" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="선택: 마케팅 수신 동의" />
-        <TextView android:id="@+id/error" android:layout_width="match_parent" android:layout_height="wrap_content" android:accessibilityLiveRegion="polite" />
-        <ProgressBar android:id="@+id/progress" android:layout_width="wrap_content" android:layout_height="wrap_content" android:visibility="gone" />
-        <Button android:id="@+id/submit" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="로그인" />
-        <Button android:id="@+id/switchMode" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="회원가입" />
-    </LinearLayout>
-</ScrollView>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFF6DE"
+    android:fitsSystemWindows="true">
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="180dp"
+        android:layout_gravity="bottom"
+        android:src="@drawable/bg_auth_hills"
+        android:scaleType="fitXY"
+        android:importantForAccessibility="no" />
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:clipToPadding="false">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="24dp"
+            android:paddingTop="28dp"
+            android:paddingBottom="120dp">
+            <LinearLayout
+                android:id="@+id/brand"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center_horizontal"
+                android:visibility="gone">
+                <de.hdodenhof.circleimageview.CircleImageView
+                    android:layout_width="112dp"
+                    android:layout_height="112dp"
+                    android:src="@drawable/ic_basic_profile"
+                    android:importantForAccessibility="no" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="@string/app_name"
+                    android:textSize="40sp"
+                    android:textColor="#2F7D46" />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:layout_marginBottom="20dp"
+                    android:gravity="center"
+                    android:text="@string/auth_tagline"
+                    android:textSize="14sp"
+                    android:textColor="#80684C" />
+            </LinearLayout>
+            <LinearLayout
+                android:id="@+id/signupHeader"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical">
+                <androidx.appcompat.widget.AppCompatImageButton
+                    android:id="@+id/back"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:padding="12dp"
+                    android:background="@drawable/bg_notification_circle"
+                    android:src="@drawable/ic_relations_back"
+                    android:contentDescription="@string/activity_auth_back_content_description" />
+                <TextView
+                    android:id="@+id/title"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:text="@string/activity_auth_title_text"
+                    android:textSize="28sp"
+                    android:textColor="#2F7D46" />
+            </LinearLayout>
+            <TextView
+                android:id="@+id/welcome"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:layout_marginBottom="16dp"
+                android:text="@string/activity_auth_welcome_text"
+                android:textColor="#80684C"
+                android:textSize="15sp"
+                android:gravity="center" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/bg_profile_card"
+                android:paddingHorizontal="22dp"
+                android:paddingTop="8dp"
+                android:paddingBottom="20dp">
+                <TextView
+                    style="@style/AuthLabel"
+                    android:text="@string/activity_auth_email_text"
+                    android:labelFor="@id/email" />
+                <EditText
+                    android:id="@+id/email"
+                    style="@style/AuthInput"
+                    android:hint="@string/activity_auth_email_hint"
+                    android:inputType="textEmailAddress"
+                    android:autofillHints="emailAddress" />
+                <TextView
+                    android:id="@+id/nicknameLabel"
+                    style="@style/AuthLabel"
+                    android:text="@string/activity_auth_nickname_label_text"
+                    android:labelFor="@id/nickname" />
+                <EditText
+                    android:id="@+id/nickname"
+                    style="@style/AuthInput"
+                    android:hint="@string/activity_auth_nickname_hint"
+                    android:inputType="textPersonName" />
+                <TextView
+                    style="@style/AuthLabel"
+                    android:text="@string/activity_auth_password_text"
+                    android:labelFor="@id/password" />
+                <EditText
+                    android:id="@+id/password"
+                    style="@style/AuthInput"
+                    android:hint="@string/activity_auth_password_hint"
+                    android:inputType="textPassword"
+                    android:autofillHints="password"
+                    android:saveEnabled="false" />
+                <TextView
+                    android:id="@+id/confirmationLabel"
+                    style="@style/AuthLabel"
+                    android:text="@string/activity_auth_confirmation_label_text"
+                    android:labelFor="@id/confirmation" />
+                <EditText
+                    android:id="@+id/confirmation"
+                    style="@style/AuthInput"
+                    android:hint="@string/activity_auth_confirmation_hint"
+                    android:inputType="textPassword"
+                    android:saveEnabled="false" />
+                <CheckBox
+                    android:id="@+id/showPassword"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="48dp"
+                    android:text="@string/activity_auth_show_password_text"
+                    android:textColor="#80684C"
+                    android:buttonTint="#2F7D46"
+                    android:saveEnabled="false" />
+                <CheckBox
+                    android:id="@+id/terms"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/activity_auth_terms_text"
+                    android:textColor="#76583D"
+                    android:visibility="gone" />
+                <Button
+                    android:id="@+id/readTerms"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/activity_auth_read_terms_text"
+                    android:visibility="gone" />
+                <CheckBox
+                    android:id="@+id/marketing"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/activity_auth_marketing_text"
+                    android:visibility="gone" />
+                <TextView
+                    android:id="@+id/error"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_auth_input"
+                    android:padding="12dp"
+                    android:textColor="#9A542B"
+                    android:textSize="13sp"
+                    android:accessibilityLiveRegion="polite"
+                    android:visibility="gone" />
+                <ProgressBar
+                    android:id="@+id/progress"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_gravity="center_horizontal"
+                    android:visibility="gone" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/submit"
+                    style="@style/ProfileAction"
+                    android:layout_height="56dp"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/activity_auth_submit_text"
+                    android:textSize="19sp"
+                    android:letterSpacing="0"
+                    app:cornerRadius="28dp" />
+            </LinearLayout>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/switchMode"
+                style="@style/ProfileSecondary"
+                android:layout_width="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="18dp"
+                android:text="@string/activity_auth_switch_mode_text"
+                android:letterSpacing="0" />
+        </LinearLayout>
+    </ScrollView>
+</FrameLayout>
