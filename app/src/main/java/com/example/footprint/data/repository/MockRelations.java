@@ -31,6 +31,7 @@ public final class MockRelations {
         List<Long> ids = new ArrayList<>();
         if ("blocks".equals(type)) ids.addAll(state().blocked);
         else if ("requests".equals(type)) ids.addAll(state().incoming);
+        else if ("sent".equals(type)) state().outgoing.forEach((id, status) -> { if ("PENDING".equals(status)) ids.add(id); });
         else if ("followers".equals(type)) ids.addAll(state().followers);
         else state().outgoing.forEach((id, status) -> { if ("ACCEPTED".equals(status)) ids.add(id); });
         Collections.sort(ids); return ids;

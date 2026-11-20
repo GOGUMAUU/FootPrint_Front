@@ -21,7 +21,7 @@ public final class SearchViewModel extends ViewModel {
     private final List<UserSummary> rows = new ArrayList<>();
     private Call<UserPage> pending;
     private int generation, nextPage;
-    private String query = "", type = "NICKNAME";
+    private String query = "", type = null;
     public LiveData<State> state() { return state; }
     public boolean isMock() { return BuildConfig.DEBUG && BuildConfig.API_BASE_URL.equals("https://example.com/"); }
     public void search(String query, String type) {

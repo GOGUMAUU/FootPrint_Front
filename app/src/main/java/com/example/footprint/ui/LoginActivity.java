@@ -16,6 +16,10 @@ public class LoginActivity extends AppCompatActivity {
         boolean signup = this instanceof SignupActivity;
         ActivityAuthBinding binding = ActivityAuthBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        binding.brand.setVisibility(signup ? View.GONE : View.VISIBLE);
+        binding.signupHeader.setVisibility(signup ? View.VISIBLE : View.GONE);
+        binding.welcome.setVisibility(signup ? View.VISIBLE : View.GONE);
+        binding.back.setOnClickListener(v -> finish());
         binding.showPassword.setOnCheckedChangeListener((button, checked) -> {
             for (android.widget.EditText field : new android.widget.EditText[]{binding.password, binding.confirmation}) {
                 int selection = field.getSelectionStart();
@@ -35,8 +39,8 @@ public class LoginActivity extends AppCompatActivity {
         binding.terms.setVisibility(View.GONE);
         binding.title.setText(signup ? "회원가입" : "로그인");
         binding.submit.setText(signup ? "가입하기" : "로그인");
-        binding.switchMode.setText(signup ? "로그인으로 돌아가기" : "회원가입");
-        for (View view : new View[]{binding.confirmation, binding.nickname}) view.setVisibility(signup ? View.VISIBLE : View.GONE);
+        binding.switchMode.setText(signup ? "로그인으로 돌아가기" : "처음이에요! 회원가입");
+        for (View view : new View[]{binding.confirmation, binding.nickname, binding.confirmationLabel, binding.nicknameLabel}) view.setVisibility(signup ? View.VISIBLE : View.GONE);
         binding.marketing.setVisibility(View.GONE);
         binding.switchMode.setOnClickListener(v -> { if (signup) finish(); else startActivity(new Intent(this, SignupActivity.class)); });
         binding.submit.setOnClickListener(v -> {
@@ -47,6 +51,7 @@ public class LoginActivity extends AppCompatActivity {
             binding.switchMode.setEnabled(!state.loading);
             binding.progress.setVisibility(state.loading ? View.VISIBLE : View.GONE);
             binding.error.setText(state.error == null ? "" : state.error);
+            binding.error.setVisibility(state.error == null || state.error.isEmpty() ? View.GONE : View.VISIBLE);
             if (state.success) {
                 model.consumeSuccess();
                 if (signup) { Toast.makeText(this, "가입되었습니다. 로그인해 주세요.", Toast.LENGTH_LONG).show(); finish(); }
@@ -55,7 +60,10 @@ public class LoginActivity extends AppCompatActivity {
         });
         if (com.example.footprint.data.repository.ProfileRepository.mock()) {
             binding.title.setText((signup ? "회원가입" : "로그인") + " · 개발용 Mock");
-            if (!signup) binding.error.setText("demo@example.com / footprint-demo-2026\nMock 계정·세션은 앱 프로세스 종료 시 초기화됩니다.");
+            if (!signup) {
+                binding.error.setText("demo@example.com / footprint-demo-2026\nMock 계정·세션은 앱 프로세스 종료 시 초기화됩니다.");
+                binding.error.setVisibility(View.VISIBLE);
+            }
         }
     }
 }

@@ -1,0 +1,18 @@
+<resources>
+    <style name="ProfileAction" parent="Widget.MaterialComponents.Button">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textColor">#FFFFFF</item>
+        <item name="backgroundTint">#2F7D46</item>
+        <item name="cornerRadius">24dp</item>
+    </style>
+    <style name="ProfileSecondary" parent="ProfileAction">
+        <item name="android:textColor">#76583D</item>
+        <item name="backgroundTint">#FFFCF3</item>
+        <item name="strokeColor">#EAD9A8</item>
+        <item name="strokeWidth">2dp</item>
+    </style>
+</resources>
