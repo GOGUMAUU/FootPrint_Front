@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="6dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_fp_card_detail"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:paddingStart="21dp"
+        android:paddingTop="24dp"
+        android:paddingEnd="21dp"
+        android:paddingBottom="31dp">
+
+        <ImageView
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:background="@drawable/bg_fp_avatar"
+            android:importantForAccessibility="no"
+            android:padding="11dp"
+            android:src="@drawable/mascot" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:fontFamily="@font/jua"
+            android:text="새 팔로워가 생겼어요!"
+            android:textColor="#2F7A44"
+            android:textSize="24sp" />
+
+        <TextView
+            android:id="@+id/tvFollowNoticeMsg"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/bg_fp_content"
+            android:fontFamily="@font/jua"
+            android:gravity="center"
+            android:paddingStart="16dp"
+            android:paddingTop="14dp"
+            android:paddingEnd="16dp"
+            android:paddingBottom="14dp"
+            android:textColor="#5E4128"
+            android:textSize="19sp" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnFollowNoticeOk"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/bg_fp_btn_coral"
+            android:fontFamily="@font/jua"
+            android:minHeight="0dp"
+            android:paddingBottom="5dp"
+            android:stateListAnimator="@null"
+            android:text="확인"
+            android:textAllCaps="false"
+            android:textColor="#4A2A1A"
+            android:textSize="19sp" />
+    </LinearLayout>
+</FrameLayout>
