@@ -23,6 +23,7 @@ public final class UserProfileActivity extends AppCompatActivity {
         model = new ViewModelProvider(this).get(UserViewModel.class);
         long id = getIntent().getLongExtra("userId", 0);
         boolean own = id == 0;
+        if (own) com.example.footprint.util.FollowNotice.showAndClear(this);
         for (String type : new String[]{"followers","following","requests","blocks"}) {
             if (!own && (type.equals("requests") || type.equals("blocks"))) continue;
             View button = type.equals("followers") ? binding.followers : type.equals("following") ? binding.following : type.equals("requests") ? binding.requests : binding.blocks;

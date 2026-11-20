@@ -2,41 +2,60 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/bg_postcard"
-    android:clipToOutline="true"
+    android:background="@drawable/bg_fp_card_detail"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:paddingStart="21dp"
+    android:paddingTop="21dp"
+    android:paddingEnd="21dp"
+    android:paddingBottom="31dp">
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
         android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="46dp"
+            android:layout_height="46dp"
+            android:background="@drawable/bg_fp_avatar"
+            android:importantForAccessibility="no"
+            android:padding="7dp"
+            android:src="@drawable/mascot" />
+
         <TextView
+            android:id="@+id/tvTitle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
             android:layout_weight="1"
-            android:id="@+id/tvTitle"
-            android:text="@string/dialog_guestbook_detail_tv_title_text"
-            android:textColor="#8A7B63"
-            android:textSize="14sp"
-            android:textStyle="bold" />
-        <TextView
+            android:ellipsize="end"
+            android:fontFamily="@font/jua"
+            android:maxLines="1"
+            android:text="방명록"
+            android:textColor="#2F7A44"
+            android:textSize="24sp" />
+
+        <ImageView
             android:id="@+id/btnClose"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:padding="8dp"
-            android:text="@string/dialog_guestbook_detail_btn_close_text"
-            android:textColor="#8A7B63"
-            android:textSize="18sp" />
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:background="@drawable/bg_fp_close"
+            android:contentDescription="닫기"
+            android:padding="12dp"
+            android:src="@drawable/ic_fp_close" />
     </LinearLayout>
+
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp">
+        android:layout_marginTop="12dp">
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
+
             <ProgressBar
                 android:id="@+id/progress"
                 android:layout_width="wrap_content"
@@ -44,85 +63,188 @@
                 android:layout_gravity="center_horizontal"
                 android:layout_marginTop="24dp"
                 android:layout_marginBottom="24dp" />
+
             <TextView
                 android:id="@+id/tvError"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:fontFamily="@font/gowun_dodum"
                 android:padding="12dp"
-                android:textColor="#3B3226"
+                android:textColor="#5E4128"
                 android:textSize="16sp"
                 android:visibility="gone" />
+
             <LinearLayout
                 android:id="@+id/content"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:visibility="gone">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/tvChipPlace"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
+                        android:background="@drawable/bg_fp_chip_place"
+                        android:drawableStart="@drawable/ic_fp_place_blue"
+                        android:drawablePadding="6dp"
+                        android:ellipsize="end"
+                        android:fontFamily="@font/gowun_dodum"
+                        android:maxWidth="150dp"
+                        android:maxLines="1"
+                        android:paddingStart="12dp"
+                        android:paddingTop="6dp"
+                        android:paddingEnd="12dp"
+                        android:paddingBottom="6dp"
+                        android:textColor="#1F5F86"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/tvChipDate"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
+                        android:background="@drawable/bg_fp_chip_date"
+                        android:fontFamily="@font/gowun_dodum"
+                        android:paddingStart="12dp"
+                        android:paddingTop="6dp"
+                        android:paddingEnd="12dp"
+                        android:paddingBottom="6dp"
+                        android:textColor="#7A4A0E"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/tvChipVis"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_fp_chip_vis"
+                        android:fontFamily="@font/gowun_dodum"
+                        android:paddingStart="12dp"
+                        android:paddingTop="6dp"
+                        android:paddingEnd="12dp"
+                        android:paddingBottom="6dp"
+                        android:textColor="#2F7A44"
+                        android:textSize="14sp" />
+                </LinearLayout>
+
                 <HorizontalScrollView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
                     android:scrollbars="none">
+
                     <LinearLayout
                         android:id="@+id/photoContainer"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal" />
                 </HorizontalScrollView>
+
                 <TextView
                     android:id="@+id/tvContent"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:lineSpacingExtra="4dp"
-                    android:textColor="#3B3226"
-                    android:textSize="18sp" />
-                <TextView
-                    android:id="@+id/tvMeta"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
-                    android:gravity="end"
-                    android:textColor="#8A7B63"
-                    android:textSize="13sp"
-                    android:textStyle="italic" />
+                    android:background="@drawable/bg_fp_content"
+                    android:fontFamily="@font/gowun_dodum"
+                    android:lineSpacingMultiplier="1.15"
+                    android:paddingStart="16dp"
+                    android:paddingTop="14dp"
+                    android:paddingEnd="16dp"
+                    android:paddingBottom="14dp"
+                    android:textColor="#5E4128"
+                    android:textSize="18sp" />
+
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
-                    <Button
+
+                    <androidx.appcompat.widget.AppCompatButton
                         android:id="@+id/btnLike"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/dialog_guestbook_detail_btn_like_text" />
+                        android:layout_height="48dp"
+                        android:background="@drawable/bg_fp_like"
+                        android:drawableStart="@drawable/ic_fp_heart_outline"
+                        android:drawablePadding="8dp"
+                        android:fontFamily="@font/jua"
+                        android:minWidth="0dp"
+                        android:minHeight="0dp"
+                        android:paddingStart="20dp"
+                        android:paddingEnd="20dp"
+                        android:stateListAnimator="@null"
+                        android:text="좋아요"
+                        android:textAllCaps="false"
+                        android:textColor="#8A3A22"
+                        android:textSize="18sp" />
+
                     <TextView
                         android:id="@+id/tvLikeCount"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
-                        android:textColor="#3B3226"
-                        android:textSize="15sp" />
+                        android:visibility="gone" />
                 </LinearLayout>
+
                 <LinearLayout
                     android:id="@+id/ownerRow"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:gravity="end"
-                    android:orientation="horizontal"
+                    android:layout_marginTop="14dp"
+                    android:orientation="vertical"
                     android:visibility="gone">
-                    <Button
-                        android:id="@+id/btnEdit"
-                        android:layout_width="wrap_content"
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="3dp"
+                        android:background="@drawable/bg_fp_divider"
+                        android:layerType="software" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="@string/dialog_guestbook_detail_btn_edit_text" />
-                    <Button
-                        android:id="@+id/btnDelete"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
-                        android:text="@string/dialog_guestbook_detail_btn_delete_text" />
+                        android:layout_marginTop="12dp"
+                        android:orientation="horizontal">
+
+                        <androidx.appcompat.widget.AppCompatButton
+                            android:id="@+id/btnEdit"
+                            android:layout_width="0dp"
+                            android:layout_height="50dp"
+                            android:layout_marginEnd="5dp"
+                            android:layout_weight="1"
+                            android:background="@drawable/bg_fp_btn_sky"
+                            android:fontFamily="@font/jua"
+                            android:minHeight="0dp"
+                            android:paddingBottom="4dp"
+                            android:stateListAnimator="@null"
+                            android:text="수정"
+                            android:textAllCaps="false"
+                            android:textColor="#143F58"
+                            android:textSize="18sp" />
+
+                        <androidx.appcompat.widget.AppCompatButton
+                            android:id="@+id/btnDelete"
+                            android:layout_width="0dp"
+                            android:layout_height="50dp"
+                            android:layout_marginStart="5dp"
+                            android:layout_weight="1"
+                            android:background="@drawable/bg_fp_btn_peach"
+                            android:fontFamily="@font/jua"
+                            android:minHeight="0dp"
+                            android:paddingBottom="4dp"
+                            android:stateListAnimator="@null"
+                            android:text="삭제"
+                            android:textAllCaps="false"
+                            android:textColor="#6A2A16"
+                            android:textSize="18sp" />
+                    </LinearLayout>
                 </LinearLayout>
             </LinearLayout>
         </LinearLayout>

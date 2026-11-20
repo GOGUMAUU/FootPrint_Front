@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:id="@+id/main">
+
     <com.kakao.vectormap.MapView
         android:id="@+id/mapView"
         android:layout_width="0dp"
@@ -11,6 +13,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
+
     <HorizontalScrollView
         android:id="@+id/filterScroll"
         android:layout_width="0dp"
@@ -25,50 +28,36 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
-            <Button
-                android:id="@+id/btnNearby"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/nearby" />
-            <Button
-                android:id="@+id/btnFollowing"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/activity_main_btn_following_text" />
-            <Button
-                android:id="@+id/btnMyMap"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/my_map" />
-            <Button
-                android:id="@+id/btnSort"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/activity_main_btn_sort_text" />
-            <Button
-                android:id="@+id/btnFilter"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/activity_main_btn_filter_text" />
-            <Button
-                android:id="@+id/btnUsers"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/search_users" />
-            <Button
-                android:id="@+id/btnChallenges"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/challenges" />
+            <Button android:id="@+id/btnNearby" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="주변" />
+            <Button android:id="@+id/btnFollowing" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="팔로잉 지도" />
+            <Button android:id="@+id/btnMyMap" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="내 지도" />
+            <Button android:id="@+id/btnSort" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="거리순" />
+            <Button android:id="@+id/btnFilter" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="필터" />
+            <Button android:id="@+id/btnUsers" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="사용자 찾기" />
+            <Button android:id="@+id/btnChallenges" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="도전과제" />
         </LinearLayout>
     </HorizontalScrollView>
-    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+
+    <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/fabCreate"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="52dp"
         android:layout_margin="20dp"
-        android:text="@string/activity_main_fab_create_text"
-        app:icon="@android:drawable/ic_input_add"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent" />
+        android:background="@drawable/bg_fp_btn_coral"
+        android:drawableStart="@drawable/ic_fp_pencil"
+        android:drawablePadding="8dp"
+        android:fontFamily="@font/jua"
+        android:minWidth="0dp"
+        android:minHeight="0dp"
+        android:paddingStart="22dp"
+        android:paddingEnd="24dp"
+        android:paddingBottom="5dp"
+        android:stateListAnimator="@null"
+        android:text="방명록 남기기"
+        android:textAllCaps="false"
+        android:textColor="#4A2A1A"
+        android:textSize="17sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

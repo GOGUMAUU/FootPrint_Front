@@ -26,6 +26,9 @@ import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.bitmap.CenterCrop;
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
+import com.example.footprint.R;
 import com.example.footprint.api.ApiClient;
 import com.example.footprint.data.model.Guestbook;
 import com.example.footprint.databinding.ActivityCreateGuestbookBinding;
@@ -147,6 +150,14 @@ public class CreateGuestbookActivity extends AppCompatActivity {
         binding.btnTakePhoto.setOnClickListener(v -> openCamera());
         renderPhotos();
         binding.btnSave.setOnClickListener(v -> save());
+        binding.btnBack.setOnClickListener(v -> finish());
+        binding.etContent.addTextChangedListener(new android.text.TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int a, int b, int c) {}
+            @Override public void onTextChanged(CharSequence s, int a, int b, int c) {}
+            @Override public void afterTextChanged(android.text.Editable s) {
+                binding.tvCharCount.setText(s.length() + "/120");
+            }
+        });
         fusedClient = LocationServices.getFusedLocationProviderClient(this);
         requestLocation();
     }
@@ -230,30 +241,44 @@ public class CreateGuestbookActivity extends AppCompatActivity {
     private void renderPhotos() {
         binding.photoContainer.removeAllViews();
         float d = getResources().getDisplayMetrics().density;
-        int size = (int) (96 * d);
-        int pad = (int) (6 * d);
+        int size = (int) (78 * d);
+        int frame = (int) (3 * d);
         for (Uri uri : photos) {
             FrameLayout cell = new FrameLayout(this);
             LinearLayout.LayoutParams cellLp = new LinearLayout.LayoutParams(size, size);
-            cellLp.setMarginEnd((int) (8 * d));
+            cellLp.setMarginEnd((int) (10 * d));
             cell.setLayoutParams(cellLp);
 
             ImageView img = new ImageView(this);
             img.setScaleType(ImageView.ScaleType.CENTER_CROP);
-            Glide.with(this).load(uri).into(img);
+            img.setBackgroundResource(R.drawable.bg_fp_photo_frame);
+            img.setPadding(frame, frame, frame, frame);
+            Glide.with(this).load(uri)
+                    .transform(new CenterCrop(), new RoundedCorners((int) (17 * d)))
+                    .into(img);
             cell.addView(img, new FrameLayout.LayoutParams(size, size));
 
-            TextView x = new TextView(this);
-            x.setText("✕");
-            x.setTextColor(0xFFFFFFFF);
-            x.setBackgroundColor(0x99000000);
-            x.setPadding(pad, pad, pad, pad);
+            ImageView x = new ImageView(this);
+            x.setImageResource(R.drawable.ic_fp_x_white);
+            x.setBackgroundResource(R.drawable.bg_fp_remove);
+            x.setScaleType(ImageView.ScaleType.CENTER);
+            x.setContentDescription("사진 삭제");
             x.setOnClickListener(v -> { photos.remove(uri); renderPhotos(); });
-            cell.addView(x, new FrameLayout.LayoutParams(
-                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT,
-                    Gravity.TOP | Gravity.END));
+            FrameLayout.LayoutParams xLp = new FrameLayout.LayoutParams(
+                    (int) (26 * d), (int) (26 * d), Gravity.TOP | Gravity.END);
+            xLp.setMargins(0, (int) (3 * d), (int) (3 * d), 0);
+            cell.addView(x, xLp);
 
             binding.photoContainer.addView(cell);
+        }
+        if (photos.size() < MAX_PHOTOS) {
+            ImageView add = new ImageView(this);
+            add.setImageResource(R.drawable.ic_fp_plus);
+            add.setBackgroundResource(R.drawable.bg_fp_add);
+            add.setScaleType(ImageView.ScaleType.CENTER);
+            add.setContentDescription("사진 추가");
+            add.setOnClickListener(v -> binding.btnPickPhoto.performClick());
+            binding.photoContainer.addView(add, new LinearLayout.LayoutParams(size, size));
         }
         binding.tvPhotoCount.setText("사진 " + photos.size() + "/" + MAX_PHOTOS);
     }

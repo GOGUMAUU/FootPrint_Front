@@ -1,96 +1,265 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp"
+    android:background="#FFF6DC"
     android:fitsSystemWindows="true">
-    <TextView
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/guestbook_select_location_instruction"
-        android:textStyle="bold"
-        android:textSize="18sp" />
-    <com.kakao.vectormap.MapView
-        android:id="@+id/createMapView"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/btnBack"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:background="@drawable/bg_fp_back"
+            android:contentDescription="뒤로가기"
+            android:padding="11dp"
+            android:src="@drawable/ic_fp_back" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:fontFamily="@font/jua"
+            android:text="지도에서 방문 장소를 골라요"
+            android:textColor="#2F7A44"
+            android:textSize="21sp" />
+    </LinearLayout>
+
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:layout_marginTop="10dp"
         android:layout_weight="1"
-        android:layout_marginTop="12dp" />
+        android:background="@drawable/bg_fp_map_frame"
+        android:minHeight="150dp"
+        android:paddingStart="3dp"
+        android:paddingTop="3dp"
+        android:paddingEnd="3dp"
+        android:paddingBottom="8dp">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/bg_fp_clip23"
+            android:clipToOutline="true">
+
+            <com.kakao.vectormap.MapView
+                android:id="@+id/createMapView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+        </FrameLayout>
+    </FrameLayout>
+
     <TextView
         android:id="@+id/tvSelectedLocation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/activity_create_guestbook_tv_selected_location_text"
-        android:padding="8dp" />
-    <TextView
-        android:id="@+id/tvPhotoCount"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/bg_fp_loc"
+        android:drawableStart="@drawable/ic_fp_place"
+        android:drawablePadding="10dp"
+        android:fontFamily="@font/gowun_dodum"
+        android:gravity="center_vertical"
+        android:paddingStart="14dp"
+        android:paddingTop="10dp"
+        android:paddingEnd="14dp"
+        android:paddingBottom="10dp"
+        android:text="선택된 위치 없음"
+        android:textColor="#5E4128"
+        android:textSize="16sp" />
+
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/activity_create_guestbook_tv_photo_count_text"
-        android:paddingTop="8dp" />
+        android:layout_marginTop="10dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/tvPhotoCount"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:fontFamily="@font/jua"
+            android:text="사진 0/3"
+            android:textColor="#5E4128"
+            android:textSize="17sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/gowun_dodum"
+            android:text="최대 3장까지 올릴 수 있어요"
+            android:textColor="#7A5A3A"
+            android:textSize="14sp" />
+    </LinearLayout>
+
     <HorizontalScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
         android:scrollbars="none">
+
         <LinearLayout
             android:id="@+id/photoContainer"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:minHeight="72dp"
+            android:minHeight="78dp"
             android:orientation="horizontal" />
     </HorizontalScrollView>
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
         android:orientation="horizontal">
-        <Button
+
+        <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btnPickPhoto"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="46dp"
+            android:layout_marginEnd="5dp"
             android:layout_weight="1"
-            android:text="@string/activity_create_guestbook_btn_pick_photo_text" />
-        <Button
+            android:background="@drawable/bg_fp_btn_sky"
+            android:fontFamily="@font/jua"
+            android:minHeight="0dp"
+            android:paddingBottom="4dp"
+            android:stateListAnimator="@null"
+            android:text="갤러리"
+            android:textAllCaps="false"
+            android:textColor="#143F58"
+            android:textSize="17sp" />
+
+        <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btnTakePhoto"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="46dp"
+            android:layout_marginStart="5dp"
             android:layout_weight="1"
-            android:text="@string/activity_create_guestbook_btn_take_photo_text" />
+            android:background="@drawable/bg_fp_btn_yellow"
+            android:fontFamily="@font/jua"
+            android:minHeight="0dp"
+            android:paddingBottom="4dp"
+            android:stateListAnimator="@null"
+            android:text="카메라"
+            android:textAllCaps="false"
+            android:textColor="#5A3E00"
+            android:textSize="17sp" />
     </LinearLayout>
-    <EditText
-        android:id="@+id/etContent"
+
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="@string/activity_create_guestbook_et_content_hint"
-        android:maxLength="120" />
+        android:layout_marginTop="10dp">
+
+        <EditText
+            android:id="@+id/etContent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_fp_input"
+            android:fontFamily="@font/gowun_dodum"
+            android:gravity="top|start"
+            android:hint="짧은 글을 남겨요 (120자 이내)"
+            android:maxLength="120"
+            android:minHeight="76dp"
+            android:paddingStart="14dp"
+            android:paddingTop="12dp"
+            android:paddingEnd="14dp"
+            android:paddingBottom="26dp"
+            android:textColor="#5E4128"
+            android:textColorHint="#B7A27A"
+            android:textSize="17sp" />
+
+        <TextView
+            android:id="@+id/tvCharCount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|end"
+            android:layout_marginEnd="14dp"
+            android:layout_marginBottom="8dp"
+            android:fontFamily="@font/gowun_dodum"
+            android:text="0/120"
+            android:textColor="#7A5A3A"
+            android:textSize="13sp" />
+    </FrameLayout>
+
     <RadioGroup
         android:id="@+id/rgVisibility"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
+        android:layout_marginTop="10dp"
         android:checkedButton="@+id/rbPublic"
-        android:paddingTop="8dp">
+        android:orientation="horizontal">
+
         <RadioButton
             android:id="@+id/rbPublic"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/activity_create_guestbook_rb_public_text" />
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_marginEnd="4dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_fp_chip"
+            android:button="@null"
+            android:fontFamily="@font/jua"
+            android:gravity="center"
+            android:text="전체 공개"
+            android:textColor="@color/fp_chip_text"
+            android:textSize="16sp" />
+
         <RadioButton
             android:id="@+id/rbFollowers"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:text="@string/activity_create_guestbook_rb_followers_text" />
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="4dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_fp_chip"
+            android:button="@null"
+            android:fontFamily="@font/jua"
+            android:gravity="center"
+            android:text="팔로워 공개"
+            android:textColor="@color/fp_chip_text"
+            android:textSize="16sp" />
+
         <RadioButton
             android:id="@+id/rbPrivate"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:text="@string/activity_create_guestbook_rb_private_text" />
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_marginStart="4dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_fp_chip"
+            android:button="@null"
+            android:fontFamily="@font/jua"
+            android:gravity="center"
+            android:text="나만 보기"
+            android:textColor="@color/fp_chip_text"
+            android:textSize="16sp" />
     </RadioGroup>
-    <Button
+
+    <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/btnSave"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/activity_create_guestbook_btn_save_text" />
-</LinearLayout>
+        android:layout_height="54dp"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/bg_fp_btn_coral"
+        android:fontFamily="@font/jua"
+        android:minHeight="0dp"
+        android:paddingBottom="5dp"
+        android:stateListAnimator="@null"
+        android:text="방명록 저장"
+        android:textAllCaps="false"
+        android:textColor="#4A2A1A"
+        android:textSize="21sp" />
+    </LinearLayout>
+
+</FrameLayout>

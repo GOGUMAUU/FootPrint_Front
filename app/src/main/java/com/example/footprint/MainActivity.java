@@ -64,6 +64,7 @@ public class MainActivity extends AppCompatActivity {
     private String sort = "distance"; // 주변 모드 정렬: distance | popular
 
     private Long selectedFollowingUserId = null;
+    private android.widget.Button profileButton;
 
     private com.example.footprint.data.model.MapFilterState filterState = new com.example.footprint.data.model.MapFilterState();
 
@@ -86,7 +87,7 @@ public class MainActivity extends AppCompatActivity {
         accountButton.setText("로그아웃");
         ((android.widget.LinearLayout) binding.btnUsers.getParent()).addView(accountButton);
         accountButton.setOnClickListener(v -> new androidx.appcompat.app.AlertDialog.Builder(this).setMessage("로그아웃할까요?").setNegativeButton("취소", null).setPositiveButton("로그아웃", (d,w) -> com.example.footprint.security.Session.logout(this)).show());
-        android.widget.Button profileButton = new android.widget.Button(this);
+        profileButton = new android.widget.Button(this);
         profileButton.setText("마이페이지");
         ((android.widget.LinearLayout) binding.btnUsers.getParent()).addView(profileButton);
         profileButton.setOnClickListener(v -> startActivity(new Intent(this, com.example.footprint.ui.UserProfileActivity.class)));
@@ -391,6 +392,24 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         map.resume();
         if (map.isReady()) startLocationUpdates();
+        refreshFollowDot();
+    }
+
+    private void refreshFollowDot() {
+        if (!com.example.footprint.security.Session.signedIn(this)) return;
+        com.example.footprint.util.FollowNotice.refresh(this, this::applyFollowDot);
+    }
+
+    private void applyFollowDot() {
+        if (profileButton == null) return;
+        if (com.example.footprint.util.FollowNotice.hasNew()) {
+            android.text.SpannableString s = new android.text.SpannableString("마이페이지 ●");
+            s.setSpan(new android.text.style.ForegroundColorSpan(0xFFE53935), 6, 7,
+                    android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            profileButton.setText(s);
+        } else {
+            profileButton.setText("마이페이지");
+        }
     }
 
     @Override
