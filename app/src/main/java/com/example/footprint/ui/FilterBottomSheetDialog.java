@@ -182,6 +182,10 @@ public class FilterBottomSheetDialog extends BottomSheetDialogFragment {
         chip.setText(label);
         chip.setCheckable(true);
         chip.setCheckedIconVisible(false);
+        chip.setTextColor(androidx.core.content.ContextCompat.getColorStateList(requireContext(), R.color.selector_chip_text));
+        chip.setChipBackgroundColorResource(R.color.selector_chip_bg);
+        chip.setChipStrokeColorResource(R.color.selector_chip_stroke);
+        chip.setChipStrokeWidth(getResources().getDisplayMetrics().density * 1.5f);
         chip.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isChecked) {
                 currentState.setSelectedUserId(userId);
