@@ -83,6 +83,7 @@ public class MainActivity extends AppCompatActivity {
 
         binding.fabCreate.setOnClickListener(v -> com.example.footprint.ui.LocationConsent.request(this, () -> startActivity(new Intent(this, CreateGuestbookActivity.class))));
         binding.btnUsers.setOnClickListener(v -> startActivity(new Intent(this, UserSearchActivity.class)));
+        /*
         android.widget.Button accountButton = new android.widget.Button(this);
         accountButton.setText("로그아웃");
         ((android.widget.LinearLayout) binding.btnUsers.getParent()).addView(accountButton);
@@ -93,6 +94,10 @@ public class MainActivity extends AppCompatActivity {
         profileButton.setOnClickListener(v -> startActivity(new Intent(this, com.example.footprint.ui.UserProfileActivity.class)));
         android.widget.Button locationPolicyButton = new android.widget.Button(this);
         locationPolicyButton.setText("위치 동의 관리");
+        */
+        binding.btnMap.setOnClickListener(v -> switchMode("nearby"));
+        binding.btnProfile.setOnClickListener(v -> startActivity(new Intent(this, com.example.footprint.ui.UserProfileActivity.class)));
+        /*
         ((android.widget.LinearLayout) binding.btnUsers.getParent()).addView(locationPolicyButton);
         locationPolicyButton.setOnClickListener(v -> {
             if (!com.example.footprint.security.Session.locationConsent) { com.example.footprint.ui.LocationConsent.request(this, this::ensureLocationPermissionAndLoad); return; }
@@ -119,6 +124,7 @@ public class MainActivity extends AppCompatActivity {
                         });
                     }).show();
         });
+         */
         binding.btnChallenges.setOnClickListener(v -> com.example.footprint.ui.LocationConsent.request(this, () -> startActivity(new Intent(this, ChallengeActivity.class))));
         binding.btnNearby.setOnClickListener(v -> switchMode("nearby"));
         binding.btnFollowing.setOnClickListener(v -> switchMode("following"));
@@ -192,6 +198,7 @@ public class MainActivity extends AppCompatActivity {
         binding.btnNearby.setSelected("nearby".equals(mode));
         binding.btnFollowing.setSelected("following".equals(mode));
         binding.btnMyMap.setSelected("me".equals(mode));
+        binding.btnMap.setSelected(!"me".equals(mode));
         // 거리순/인기순 토글은 주변 모드에서만
         binding.btnSort.setVisibility("nearby".equals(mode) ? android.view.View.VISIBLE : android.view.View.GONE);
     }
