@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#FFFFFF"
+    android:fitsSystemWindows="true">
+    <!-- 상단 제목과 뒤로가기 버튼 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="16dp">
+        <ImageButton
+            android:id="@+id/btnBack"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@android:drawable/ic_media_previous"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/activity_challenge_detail_btn_back_content_description" />
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/challenge_detail_title"
+            android:textColor="#222222"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+    <!-- 스크롤 가능한 상세 내용 -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+            <!-- 도전과제 유형과 지역 -->
+            <TextView
+                android:id="@+id/tvChallengeCategory"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/activity_challenge_detail_tv_challenge_category_text"
+                android:textColor="#777777"
+                android:textSize="13sp" />
+            <!-- 도전과제 제목 -->
+            <TextView
+                android:id="@+id/tvChallengeTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/activity_challenge_detail_tv_challenge_title_text"
+                android:textColor="#222222"
+                android:textSize="24sp"
+                android:textStyle="bold" />
+            <!-- 도전과제 설명 -->
+            <TextView
+                android:id="@+id/tvChallengeDescription"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="@string/activity_challenge_detail_tv_challenge_description_text"
+                android:textColor="#555555"
+                android:textSize="15sp" />
+            <!-- 성취도 -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="28dp"
+                android:text="@string/challenge_progress_title"
+                android:textColor="#222222"
+                android:textSize="17sp"
+                android:textStyle="bold" />
+            <TextView
+                android:id="@+id/tvDetailProgress"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/activity_challenge_detail_tv_detail_progress_text"
+                android:textColor="#555555"
+                android:textSize="14sp" />
+            <ProgressBar
+                android:id="@+id/progressChallenge"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="12dp"
+                android:layout_marginTop="8dp"
+                android:max="100"
+                android:progress="0"
+                android:progressTint="#888888"
+                android:progressBackgroundTint="#DDDDDD" />
+            <!-- GPS 인증 -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="28dp"
+                android:text="@string/challenge_location_verification_title"
+                android:textColor="#222222"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+            <TextView
+                android:id="@+id/tvLocationStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/activity_challenge_detail_tv_location_status_text"
+                android:textColor="#777777"
+                android:textSize="13sp" />
+            <Button
+                android:id="@+id/btnVerify"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="@string/activity_challenge_detail_btn_verify_text"
+                android:backgroundTint="#555555"
+                android:textColor="#FFFFFF" />
+            <!-- 사진 인증 -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="28dp"
+                android:text="@string/challenge_photo_upload_title"
+                android:textColor="#222222"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+            <ImageView
+                android:id="@+id/ivChallengePhoto"
+                android:layout_width="match_parent"
+                android:layout_height="160dp"
+                android:layout_marginTop="12dp"
+                android:background="#F2F2F2"
+                android:scaleType="centerCrop"
+                android:contentDescription="@string/activity_challenge_detail_iv_challenge_photo_content_description" />
+            <Button
+                android:id="@+id/btnSelectPhoto"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/activity_challenge_detail_btn_select_photo_text"
+                android:backgroundTint="#777777"
+                android:textColor="#FFFFFF" />
+            <!-- 여행 기록 -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="28dp"
+                android:text="@string/challenge_record_title"
+                android:textColor="#222222"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+            <EditText
+                android:id="@+id/etChallengeMemo"
+                android:layout_width="match_parent"
+                android:layout_height="120dp"
+                android:layout_marginTop="12dp"
+                android:padding="12dp"
+                android:background="#F2F2F2"
+                android:gravity="top"
+                android:inputType="textMultiLine"
+                android:hint="@string/activity_challenge_detail_et_challenge_memo_hint"
+                android:textColor="#222222"
+                android:textColorHint="#999999" />
+            <!-- 위치 인증 완료 상태 표시 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:padding="8dp">
+                <!-- 체크 표시 -->
+                <ImageView
+                    android:id="@+id/ivVerificationCheck"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_check_circle"
+                    android:contentDescription="@string/activity_challenge_detail_iv_verification_check_content_description" />
+                <!-- 인증 상태 문구 -->
+                <TextView
+                    android:id="@+id/tvVerificationStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="@string/activity_challenge_detail_tv_verification_status_text"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:textColor="#888888" />
+            </LinearLayout>
+            <!-- 도전과제 활동 등록 버튼 -->
+            <Button
+                android:id="@+id/btnSubmit"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="20dp"
+                android:text="@string/activity_challenge_detail_btn_submit_text"
+                android:textColor="#FFFFFF"
+                android:backgroundTint="#555555"
+                android:enabled="false"
+                android:alpha="0.5" />
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

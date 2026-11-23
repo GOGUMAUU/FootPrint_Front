@@ -2,6 +2,11 @@ package com.example.footprint.ui;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.Path;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
@@ -21,6 +26,9 @@ import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.bitmap.CenterCrop;
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners;
+import com.example.footprint.R;
 import com.example.footprint.api.ApiClient;
 import com.example.footprint.data.model.Guestbook;
 import com.example.footprint.databinding.ActivityCreateGuestbookBinding;
@@ -39,6 +47,8 @@ import com.kakao.vectormap.camera.CameraUpdateFactory;
 import com.kakao.vectormap.label.Label;
 import com.kakao.vectormap.label.LabelLayer;
 import com.kakao.vectormap.label.LabelOptions;
+import com.kakao.vectormap.label.LabelStyle;
+
 import com.kakao.vectormap.shape.DotPoints;
 import com.kakao.vectormap.shape.Polygon;
 import com.kakao.vectormap.shape.PolygonOptions;
@@ -82,7 +92,7 @@ public class CreateGuestbookActivity extends AppCompatActivity {
     private boolean saving;
     private String selectedName;
     private int geoSeq;
-
+    private Bitmap pinBmp;
     private final ActivityResultLauncher<PickVisualMediaRequest> pickPhotos = registerForActivityResult(
             new ActivityResultContracts.PickMultipleVisualMedia(MAX_PHOTOS), uris -> {
                 for (Uri u : uris) {
@@ -140,6 +150,14 @@ public class CreateGuestbookActivity extends AppCompatActivity {
         binding.btnTakePhoto.setOnClickListener(v -> openCamera());
         renderPhotos();
         binding.btnSave.setOnClickListener(v -> save());
+        binding.btnBack.setOnClickListener(v -> finish());
+        binding.etContent.addTextChangedListener(new android.text.TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int a, int b, int c) {}
+            @Override public void onTextChanged(CharSequence s, int a, int b, int c) {}
+            @Override public void afterTextChanged(android.text.Editable s) {
+                binding.tvCharCount.setText(s.length() + "/120");
+            }
+        });
         fusedClient = LocationServices.getFusedLocationProviderClient(this);
         requestLocation();
     }
@@ -164,13 +182,13 @@ public class CreateGuestbookActivity extends AppCompatActivity {
             }
 
             selected = coord;
-            if (selectedMarker == null) {
-                selectedMarker = labelLayer.addLabel(
-                        LabelOptions.from("selected-point", coord)
-                );
-            } else {
-                selectedMarker.moveTo(coord);
+            if (selectedMarker != null) {
+                labelLayer.remove(selectedMarker);
+                selectedMarker = null;
             }
+            selectedMarker = labelLayer.addLabel(
+                    LabelOptions.from("selected-point", coord)
+                            .setStyles(LabelStyle.from(pinBitmap()).setAnchorPoint(0.5f, 1.0f)));
 
             binding.tvSelectedLocation.setText(String.format(Locale.KOREA, "선택 위치: %.5f, %.5f (내 위치에서 %dm)",
                     coord.getLatitude(), coord.getLongitude(), (int) meters));
@@ -223,30 +241,44 @@ public class CreateGuestbookActivity extends AppCompatActivity {
     private void renderPhotos() {
         binding.photoContainer.removeAllViews();
         float d = getResources().getDisplayMetrics().density;
-        int size = (int) (96 * d);
-        int pad = (int) (6 * d);
+        int size = (int) (78 * d);
+        int frame = (int) (3 * d);
         for (Uri uri : photos) {
             FrameLayout cell = new FrameLayout(this);
             LinearLayout.LayoutParams cellLp = new LinearLayout.LayoutParams(size, size);
-            cellLp.setMarginEnd((int) (8 * d));
+            cellLp.setMarginEnd((int) (10 * d));
             cell.setLayoutParams(cellLp);
 
             ImageView img = new ImageView(this);
             img.setScaleType(ImageView.ScaleType.CENTER_CROP);
-            Glide.with(this).load(uri).into(img);
+            img.setBackgroundResource(R.drawable.bg_fp_photo_frame);
+            img.setPadding(frame, frame, frame, frame);
+            Glide.with(this).load(uri)
+                    .transform(new CenterCrop(), new RoundedCorners((int) (17 * d)))
+                    .into(img);
             cell.addView(img, new FrameLayout.LayoutParams(size, size));
 
-            TextView x = new TextView(this);
-            x.setText("✕");
-            x.setTextColor(0xFFFFFFFF);
-            x.setBackgroundColor(0x99000000);
-            x.setPadding(pad, pad, pad, pad);
+            ImageView x = new ImageView(this);
+            x.setImageResource(R.drawable.ic_fp_x_white);
+            x.setBackgroundResource(R.drawable.bg_fp_remove);
+            x.setScaleType(ImageView.ScaleType.CENTER);
+            x.setContentDescription("사진 삭제");
             x.setOnClickListener(v -> { photos.remove(uri); renderPhotos(); });
-            cell.addView(x, new FrameLayout.LayoutParams(
-                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT,
-                    Gravity.TOP | Gravity.END));
+            FrameLayout.LayoutParams xLp = new FrameLayout.LayoutParams(
+                    (int) (26 * d), (int) (26 * d), Gravity.TOP | Gravity.END);
+            xLp.setMargins(0, (int) (3 * d), (int) (3 * d), 0);
+            cell.addView(x, xLp);
 
             binding.photoContainer.addView(cell);
+        }
+        if (photos.size() < MAX_PHOTOS) {
+            ImageView add = new ImageView(this);
+            add.setImageResource(R.drawable.ic_fp_plus);
+            add.setBackgroundResource(R.drawable.bg_fp_add);
+            add.setScaleType(ImageView.ScaleType.CENTER);
+            add.setContentDescription("사진 추가");
+            add.setOnClickListener(v -> binding.btnPickPhoto.performClick());
+            binding.photoContainer.addView(add, new LinearLayout.LayoutParams(size, size));
         }
         binding.tvPhotoCount.setText("사진 " + photos.size() + "/" + MAX_PHOTOS);
     }
@@ -271,7 +303,8 @@ public class CreateGuestbookActivity extends AppCompatActivity {
             final double lng = selected.getLongitude();
             final double curLat = loc.getLatitude();
             final double curLng = loc.getLongitude();
-            final boolean isPrivate = binding.rbPrivate.isChecked();
+            final String visibility = binding.rbPrivate.isChecked() ? "PRIVATE"
+                    : (binding.rbFollowers.isChecked() ? "FOLLOWERS_ONLY" : "PUBLIC");
             final String locName = selectedName == null ? null
                     : (selectedName.length() > 100 ? selectedName.substring(0, 100) : selectedName);
 
@@ -286,7 +319,7 @@ public class CreateGuestbookActivity extends AppCompatActivity {
                     body.put("currentLatitude", curLat);
                     body.put("currentLongitude", curLng);
                     body.put("content", text);
-                    body.put("visibility", isPrivate ? "PRIVATE" : "PUBLIC");
+                    body.put("visibility", visibility);
                     body.put("photoPaths", paths);
                     if (locName != null) body.put("locationName", locName);
 
@@ -381,6 +414,29 @@ public class CreateGuestbookActivity extends AppCompatActivity {
         float[] r = new float[1];
         Location.distanceBetween(currentLocation.getLatitude(), currentLocation.getLongitude(), p.getLatitude(), p.getLongitude(), r);
         return r[0];
+    }
+
+    private Bitmap pinBitmap() {
+        if (pinBmp != null) return pinBmp;
+        float d = getResources().getDisplayMetrics().density;
+        int w = (int) (32 * d), h = (int) (44 * d);
+        Bitmap bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+        Canvas c = new Canvas(bmp);
+        Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
+        float r = w / 2f - 2 * d;
+        float cx = w / 2f, cy = r + 2 * d;
+        p.setColor(0xFFE53935);
+        c.drawCircle(cx, cy, r, p);
+        Path tail = new Path();
+        tail.moveTo(cx - r * 0.8f, cy + r * 0.6f);
+        tail.lineTo(cx, h - 2 * d);
+        tail.lineTo(cx + r * 0.8f, cy + r * 0.6f);
+        tail.close();
+        c.drawPath(tail, p);
+        p.setColor(Color.WHITE);
+        c.drawCircle(cx, cy, r * 0.38f, p);
+        pinBmp = bmp;
+        return bmp;
     }
 
     private void showMyLocationOnMap() {

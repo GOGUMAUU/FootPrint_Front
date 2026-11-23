@@ -1,19 +1,265 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent">
- <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="24dp">
-  <TextView android:id="@+id/title" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="프로필" android:textSize="26sp" />
-  <ImageView android:id="@+id/photo" android:layout_width="120dp" android:layout_height="120dp" android:contentDescription="프로필 사진" android:src="@android:drawable/ic_menu_myplaces" />
-  <TextView android:id="@+id/details" android:layout_width="match_parent" android:layout_height="wrap_content" android:textIsSelectable="true" />
-  <Button android:id="@+id/copyCode" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="친구 코드 복사" />
-  <EditText android:id="@+id/nickname" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="닉네임" android:inputType="textPersonName" />
-  <CheckBox android:id="@+id/privateAccount" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="비공개 계정" />
-  <Button android:id="@+id/chooseImage" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="사진 선택" />
-  <Button android:id="@+id/deleteImage" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="사진 삭제" />
-  <Button android:id="@+id/save" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="프로필 저장" />
-  <Button android:id="@+id/retry" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="새로고침" />
-  <Button android:id="@+id/follow" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="팔로우" />
-  <Button android:id="@+id/block" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="차단" />
-  <Button android:id="@+id/settings" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="계정 설정" />
-  <TextView android:id="@+id/error" android:layout_width="match_parent" android:layout_height="wrap_content" android:accessibilityLiveRegion="polite" />
- </LinearLayout>
-</ScrollView>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#FFF6DE"
+    android:fitsSystemWindows="true">
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="24dp"
+            android:paddingTop="24dp"
+            android:paddingBottom="24dp">
+            <TextView
+                android:id="@+id/title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:textColor="#80684C"
+                android:textSize="13sp" />
+            <de.hdodenhof.circleimageview.CircleImageView
+                android:id="@+id/photo"
+                android:layout_width="120dp"
+                android:layout_height="120dp"
+                android:layout_marginTop="16dp"
+                android:layout_gravity="center_horizontal"
+                android:src="@drawable/ic_basic_profile"
+                app:civ_border_width="3dp"
+                app:civ_border_color="#78BB70"
+                android:contentDescription="@string/activity_profile_photo_content_description" />
+            <TextView
+                android:id="@+id/profileName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:gravity="center"
+                android:textSize="26sp"
+                android:textColor="#2F7D46"
+                tools:text="@string/activity_profile_profile_name_text" />
+            <TextView
+                android:id="@+id/copyCode"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:gravity="center"
+                android:textColor="#80684C"
+                android:textSize="14sp"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:contentDescription="@string/activity_profile_copy_code_content_description"
+                tools:text="@string/activity_profile_copy_code_text" />
+            <TextView
+                android:id="@+id/details"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:textColor="#80684C"
+                android:visibility="gone" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="16dp"
+                android:orientation="horizontal">
+                <TextView
+                    android:id="@+id/guestbookCount"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="76dp"
+                    android:layout_marginHorizontal="4dp"
+                    android:background="@drawable/bg_profile_card"
+                    android:gravity="center"
+                    android:text="@string/activity_profile_guestbook_count_text"
+                    android:textSize="18sp"
+                    android:textColor="#2F7D46"
+                    android:clickable="true"
+                    android:focusable="true" />
+                <TextView
+                    android:id="@+id/followers"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="76dp"
+                    android:layout_marginHorizontal="4dp"
+                    android:background="@drawable/bg_profile_card"
+                    android:gravity="center"
+                    android:text="@string/activity_profile_followers_text"
+                    android:textSize="18sp"
+                    android:textColor="#3995BE"
+                    android:clickable="true"
+                    android:focusable="true" />
+                <TextView
+                    android:id="@+id/following"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="76dp"
+                    android:layout_marginHorizontal="4dp"
+                    android:background="@drawable/bg_profile_card"
+                    android:gravity="center"
+                    android:text="@string/activity_profile_following_text"
+                    android:textSize="18sp"
+                    android:textColor="#B96737"
+                    android:clickable="true"
+                    android:focusable="true" />
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/bg_profile_card"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="8dp">
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/privateAccount"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:text="@string/activity_profile_private_account_text"
+                    android:textSize="17sp"
+                    android:textColor="#80684C"
+                    app:buttonTint="#2F7D46" />
+                <TextView
+                    android:id="@+id/seeMap"
+                    style="@style/ProfileMenuRow"
+                    android:text="@string/activity_profile_see_map_text"
+                    android:drawableStart="@drawable/ic_profile_flag" />
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#EAD9A8" />
+                <TextView
+                    android:id="@+id/requests"
+                    style="@style/ProfileMenuRow"
+                    android:text="@string/activity_profile_requests_text"
+                    android:drawableStart="@drawable/ic_profile_people" />
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#EAD9A8" />
+                <TextView
+                    android:id="@+id/blocks"
+                    style="@style/ProfileMenuRow"
+                    android:text="@string/activity_profile_blocks_text"
+                    android:drawableStart="@drawable/ic_profile_person" />
+            </LinearLayout>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/follow"
+                style="@style/ProfileAction"
+                android:text="@string/activity_challenge_btn_filter_following_text"
+                android:visibility="gone" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/block"
+                style="@style/ProfileSecondary"
+                android:text="@string/activity_profile_block_text"
+                android:visibility="gone" />
+            <LinearLayout
+                android:id="@+id/editActions"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="horizontal">
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/editProfile"
+                    style="@style/ProfileSecondary"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="4dp"
+                    android:text="@string/activity_profile_edit_profile_text"
+                    android:letterSpacing="0" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/settings"
+                    style="@style/ProfileSecondary"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_marginStart="4dp"
+                    android:text="@string/account_settings_title"
+                    android:letterSpacing="0" />
+            </LinearLayout>
+            <LinearLayout
+                android:id="@+id/editSection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/bg_profile_card"
+                android:padding="16dp"
+                android:visibility="gone">
+                <EditText
+                    android:id="@+id/nickname"
+                    style="@style/AuthInput"
+                    android:hint="@string/activity_auth_nickname_label_text"
+                    android:inputType="textPersonName" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/chooseImage"
+                    style="@style/ProfileSecondary"
+                    android:text="@string/activity_profile_choose_image_text" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/deleteImage"
+                    style="@style/ProfileSecondary"
+                    android:text="@string/activity_profile_delete_image_text" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/save"
+                    style="@style/ProfileAction"
+                    android:text="@string/activity_profile_save_text" />
+            </LinearLayout>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/logout"
+                style="@style/ProfileSecondary"
+                android:layout_marginTop="12dp"
+                android:text="@string/activity_account_logout_text"
+                android:textColor="#B86952"
+                android:letterSpacing="0" />
+            <TextView
+                android:id="@+id/error"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:textColor="#A65540"
+                android:accessibilityLiveRegion="polite"
+                android:visibility="gone" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/retry"
+                style="@style/ProfileSecondary"
+                android:text="@string/activity_profile_retry_text"
+                android:visibility="gone" />
+        </LinearLayout>
+    </ScrollView>
+    <LinearLayout
+        android:id="@+id/bottomNav"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="8dp"
+        android:layout_marginBottom="8dp"
+        android:padding="8dp"
+        android:background="@drawable/bg_profile_card"
+        android:orientation="horizontal">
+        <TextView
+            android:id="@+id/navMap"
+            style="@style/ProfileNavItem"
+            android:text="@string/activity_profile_nav_map_text"
+            android:drawableTop="@drawable/ic_profile_pin" />
+        <TextView
+            android:id="@+id/navMyMap"
+            style="@style/ProfileNavItem"
+            android:text="@string/my_map"
+            android:drawableTop="@drawable/ic_profile_flag" />
+        <TextView
+            android:id="@+id/navFriends"
+            style="@style/ProfileNavItem"
+            android:text="@string/activity_profile_nav_friends_text"
+            android:drawableTop="@drawable/ic_profile_people" />
+        <TextView
+            android:id="@+id/navChallenges"
+            style="@style/ProfileNavItem"
+            android:text="@string/activity_profile_nav_challenges_text"
+            android:drawableTop="@drawable/ic_profile_star" />
+        <TextView
+            android:id="@+id/navProfile"
+            style="@style/ProfileNavItem"
+            android:text="@string/activity_profile_nav_profile_text"
+            android:drawableTop="@drawable/ic_profile_person" />
+    </LinearLayout>
+</LinearLayout>

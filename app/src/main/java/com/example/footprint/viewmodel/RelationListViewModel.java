@@ -21,10 +21,15 @@ public final class RelationListViewModel extends ViewModel {
         if (Boolean.TRUE.equals(busy.getValue())) return;
         this.type = type; this.userId = userId;
         if (!append) { page = 0; all.clear(); }
+        if (!append) { rows.setValue(Collections.emptyList()); more.setValue(false); }
         busy.setValue(true); error.setValue("");
         if (ProfileRepository.mock()) {
-            for (Long id : MockRelations.list(type)) { Row row = new Row(); row.userId = id; row.relationId = id; row.nickname = "산책친구 " + id; all.add(row); }
+            for (Long id : MockRelations.list(type, userId)) { Row row = new Row(); row.userId = id; row.relationId = id; row.nickname = id == 0 ? "나" : "산책친구 " + id; all.add(row); }
             rows.setValue(new ArrayList<>(all)); more.setValue(false); busy.setValue(false); return;
+        }
+        if (type.equals("sent")) {
+            error.setValue("현재 보낸 요청 목록을 조회할 수 없습니다.");
+            more.setValue(false); busy.setValue(false); return;
         }
         RelationshipApi api = ApiClient.create(RelationshipApi.class);
         Call<JsonObject> call = type.equals("requests") ? api.requests(page,20) : type.equals("blocks") ? api.blocks(page,20) : type.equals("followers") ? api.followers(userId,page,20) : api.following(userId,page,20);
@@ -41,7 +46,8 @@ public final class RelationListViewModel extends ViewModel {
                         Row row = new Row(); row.userId = user.get("userId").getAsLong(); row.nickname = user.get("nickname").getAsString();
                         row.relationId = type.equals("requests") ? outer.get("followId").getAsLong() : row.userId; loaded.add(row);
                     }
-                    all.addAll(loaded); page++; rows.setValue(new ArrayList<>(all)); more.setValue(r.body().get("hasNext").getAsBoolean());
+                    boolean hasNext = r.body().get("hasNext").getAsBoolean();
+                    all.addAll(loaded); page++; rows.setValue(new ArrayList<>(all)); more.setValue(hasNext);
                 } catch (RuntimeException e) { error.setValue("목록을 불러오지 못했습니다. 다시 시도해 주세요."); }
             }
             public void onFailure(Call<JsonObject> c, Throwable t) { if (!c.isCanceled()) { busy.setValue(false); error.setValue("연결을 확인해 주세요."); } }

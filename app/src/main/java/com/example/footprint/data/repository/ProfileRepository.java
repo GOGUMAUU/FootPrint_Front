@@ -37,14 +37,18 @@ public final class ProfileRepository {
     private static UserProfile copy(UserProfile user) {
         Gson gson = new Gson(); UserProfile copy = gson.fromJson(gson.toJson(user), UserProfile.class);
         if (copy.userId == 0) { copy.followerCount = MockRelations.list("followers").size(); copy.followingCount = MockRelations.list("following").size(); }
-        else { copy.isPrivate = copy.userId % 2 == 0; copy.outgoingFollowStatus = MockRelations.status(copy.userId); copy.incomingFollowStatus = MockRelations.requested(copy.userId) ? "PENDING" : "NONE"; copy.blockedByMe = MockRelations.blocked(copy.userId); }
+        else { copy.isPrivate = copy.userId % 2 == 0; copy.outgoingFollowStatus = MockRelations.status(copy.userId); copy.incomingFollowStatus = MockRelations.requested(copy.userId) ? "PENDING" : MockRelations.list("followers").contains(copy.userId) ? "ACCEPTED" : "NONE"; copy.blockedByMe = MockRelations.blocked(copy.userId);
+            copy.followerCount = MockRelations.list("followers", copy.userId).size(); copy.followingCount = MockRelations.list("following", copy.userId).size(); }
         return copy;
     }
     private Call<?> enqueue(Call<JsonObject> call, Result result) {
         call.enqueue(new Callback<JsonObject>() {
             public void onResponse(Call<JsonObject> c, Response<JsonObject> r) {
                 if (!r.isSuccessful() || r.body() == null) { result.complete(null, "프로필 요청 실패 (" + r.code() + ")"); return; }
-                result.complete(new Gson().fromJson(r.body(), UserProfile.class), null);
+                UserProfile profile;
+                try { profile = UserProfile.fromApi(r.body()); }
+                catch (RuntimeException e) { result.complete(null, "프로필 응답 형식을 확인해 주세요."); return; }
+                result.complete(profile, null);
             }
             public void onFailure(Call<JsonObject> c, Throwable t) { if (!c.isCanceled()) result.complete(null, "네트워크 연결을 확인해 주세요."); }
         }); return call;

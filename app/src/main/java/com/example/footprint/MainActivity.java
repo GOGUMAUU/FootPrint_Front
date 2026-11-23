@@ -12,6 +12,9 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import com.example.footprint.api.ApiClient;
 import com.example.footprint.data.model.ApiResponse;
@@ -21,6 +24,7 @@ import com.example.footprint.databinding.ActivityMainBinding;
 import com.example.footprint.map.FootprintMapController;
 import com.example.footprint.ui.ChallengeActivity;
 import com.example.footprint.ui.CreateGuestbookActivity;
+import com.example.footprint.ui.FilterBottomSheetDialog;
 import com.example.footprint.ui.UserSearchActivity;
 import com.example.footprint.util.AppConfig;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -58,6 +62,11 @@ public class MainActivity extends AppCompatActivity {
     private String mode = "nearby"; // nearby | following | me
     private String sort = "distance"; // 주변 모드 정렬: distance | popular
 
+    private Long selectedFollowingUserId = null;
+    private android.widget.Button profileButton;
+
+    private com.example.footprint.data.model.MapFilterState filterState = new com.example.footprint.data.model.MapFilterState();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -73,16 +82,21 @@ public class MainActivity extends AppCompatActivity {
 
         binding.fabCreate.setOnClickListener(v -> com.example.footprint.ui.LocationConsent.request(this, () -> startActivity(new Intent(this, CreateGuestbookActivity.class))));
         binding.btnUsers.setOnClickListener(v -> startActivity(new Intent(this, UserSearchActivity.class)));
+        /*
         android.widget.Button accountButton = new android.widget.Button(this);
         accountButton.setText("로그아웃");
         ((android.widget.LinearLayout) binding.btnUsers.getParent()).addView(accountButton);
         accountButton.setOnClickListener(v -> new androidx.appcompat.app.AlertDialog.Builder(this).setMessage("로그아웃할까요?").setNegativeButton("취소", null).setPositiveButton("로그아웃", (d,w) -> com.example.footprint.security.Session.logout(this)).show());
-        android.widget.Button profileButton = new android.widget.Button(this);
+        profileButton = new android.widget.Button(this);
         profileButton.setText("마이페이지");
         ((android.widget.LinearLayout) binding.btnUsers.getParent()).addView(profileButton);
         profileButton.setOnClickListener(v -> startActivity(new Intent(this, com.example.footprint.ui.UserProfileActivity.class)));
         android.widget.Button locationPolicyButton = new android.widget.Button(this);
         locationPolicyButton.setText("위치 동의 관리");
+        */
+        binding.btnMap.setOnClickListener(v -> switchMode("nearby"));
+        binding.btnProfile.setOnClickListener(v -> startActivity(new Intent(this, com.example.footprint.ui.UserProfileActivity.class)));
+        /*
         ((android.widget.LinearLayout) binding.btnUsers.getParent()).addView(locationPolicyButton);
         locationPolicyButton.setOnClickListener(v -> {
             if (!com.example.footprint.security.Session.locationConsent) { com.example.footprint.ui.LocationConsent.request(this, this::ensureLocationPermissionAndLoad); return; }
@@ -109,6 +123,7 @@ public class MainActivity extends AppCompatActivity {
                         });
                     }).show();
         });
+         */
         binding.btnChallenges.setOnClickListener(v -> com.example.footprint.ui.LocationConsent.request(this, () -> startActivity(new Intent(this, ChallengeActivity.class))));
         binding.btnNearby.setOnClickListener(v -> switchMode("nearby"));
         binding.btnFollowing.setOnClickListener(v -> switchMode("following"));
@@ -119,7 +134,22 @@ public class MainActivity extends AppCompatActivity {
             map.clearGuestbooks();
             scheduleReloadForCamera();
         });
-        binding.btnFilter.setOnClickListener(v -> Toast.makeText(this, "필터 UI: 연령대 · 최근 N일 · 인기/최신", Toast.LENGTH_SHORT).show());
+        //binding.btnFilter.setOnClickListener(v -> Toast.makeText(this, "필터 UI: 연령대 · 최근 N일 · 인기/최신", Toast.LENGTH_SHORT).show());
+        binding.btnFilter.setOnClickListener(v -> {
+            com.example.footprint.ui.FilterBottomSheetDialog dialog =
+                    com.example.footprint.ui.FilterBottomSheetDialog.newInstance(filterState, mode);
+            dialog.setOnFilterAppliedListener(newState -> {
+                this.filterState = newState;
+                map.clearGuestbooks();
+                scheduleReloadForCamera();
+            });
+            dialog.show(getSupportFragmentManager(), "FilterBottomSheet");
+        });
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
+        });
     }
 
     // ───────────────────────── 모드 ─────────────────────────
@@ -141,7 +171,7 @@ public class MainActivity extends AppCompatActivity {
                 map.moveCamera(currentLocation.getLatitude(), currentLocation.getLongitude(), (int) Math.round(AppConfig.ZOOM_REGION));
             } else {
                 ensureLocationPermissionAndLoad();
-                map.moveCamera(36.35, 127.8, (int) Math.round(AppConfig.ZOOM_REGION));
+                map.moveCamera(36.35, 127.8, (int) Math.round(AppConfig.ZOOM_COUNTRY));
             }
         } else {
             map.moveCamera(36.35, 127.8, (int) Math.round(AppConfig.ZOOM_COUNTRY));
@@ -167,6 +197,7 @@ public class MainActivity extends AppCompatActivity {
         binding.btnNearby.setSelected("nearby".equals(mode));
         binding.btnFollowing.setSelected("following".equals(mode));
         binding.btnMyMap.setSelected("me".equals(mode));
+        binding.btnMap.setSelected(!"me".equals(mode));
         // 거리순/인기순 토글은 주변 모드에서만
         binding.btnSort.setVisibility("nearby".equals(mode) ? android.view.View.VISIBLE : android.view.View.GONE);
     }
@@ -296,8 +327,8 @@ public class MainActivity extends AppCompatActivity {
                     bounds[1],
                     bounds[2],
                     bounds[3],
-                    null,
-                    null,
+                    filterState.getPeriod(),
+                    filterState.getAgeGroup(),
                     zoom < AppConfig.ZOOM_DETAIL ? "popular" : "latest"
             );
             boundsCall.enqueue(new Callback<>() {
@@ -356,6 +387,24 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         map.resume();
         if (map.isReady()) startLocationUpdates();
+        refreshFollowDot();
+    }
+
+    private void refreshFollowDot() {
+        if (!com.example.footprint.security.Session.signedIn(this)) return;
+        com.example.footprint.util.FollowNotice.refresh(this, this::applyFollowDot);
+    }
+
+    private void applyFollowDot() {
+        if (profileButton == null) return;
+        if (com.example.footprint.util.FollowNotice.hasNew()) {
+            android.text.SpannableString s = new android.text.SpannableString("마이페이지 ●");
+            s.setSpan(new android.text.style.ForegroundColorSpan(0xFFE53935), 6, 7,
+                    android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            profileButton.setText(s);
+        } else {
+            profileButton.setText("마이페이지");
+        }
     }
 
     @Override
