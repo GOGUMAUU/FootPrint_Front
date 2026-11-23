@@ -71,6 +71,9 @@ public class FootprintMapController {
 
     private long suppressIdleUntilMs = 0L;
 
+    // setZoomRange 로 걸어둔 최대 줌 (클러스터 줌인 한계 계산용)
+    private int cameraMaxLevel = Integer.MAX_VALUE;
+
     // 반경 제한 (주변 모드 등). limitCenter == null 이면 제한 없음
     @Nullable private LatLng limitCenter;
     private double limitRadiusMeters;
@@ -167,14 +170,16 @@ public class FootprintMapController {
     public void setZoomRange(int minLevel, int maxLevel) {
         if (kakaoMap == null) return;
         kakaoMap.setCameraMinLevel(Math.max(kakaoMap.getMinZoomLevel(), minLevel));
-        kakaoMap.setCameraMaxLevel(Math.min(kakaoMap.getMaxZoomLevel(), maxLevel));
+        cameraMaxLevel = Math.min(kakaoMap.getMaxZoomLevel(), maxLevel);
+        kakaoMap.setCameraMaxLevel(cameraMaxLevel);
     }
 
     public void resetZoomRange() {
         if (kakaoMap == null) return;
         //kakaoMap.setCameraMinLevel(kakaoMap.getMinZoomLevel());
         kakaoMap.setCameraMinLevel(6);
-        kakaoMap.setCameraMaxLevel(kakaoMap.getMaxZoomLevel());
+        cameraMaxLevel = kakaoMap.getMaxZoomLevel();
+        kakaoMap.setCameraMaxLevel(cameraMaxLevel);
     }
 
     /** 현재 화면 영역 추정 [minLat, minLng, maxLat, maxLng] */
@@ -302,13 +307,16 @@ public class FootprintMapController {
 
     /** 클러스터 클릭 → 줌인. 줌이 바뀌니 idle 이벤트를 막지 않아서 자동 재조회됨 */
     private void zoomIntoCluster(Guestbook g) {
-        int cur = getZoomLevel();
-        int maxZoom = AppConfig.CLUSTER_MAX_ZOOM; // 서버가 이 줌부터 낱개로 내려줌
-        if (cur >= maxZoom) {
-            // 이미 충분히 확대했는데도 묶여 있는 곳(같은 장소 여러 개): 줌을 바꾸지 않고 대표 글을 연다
+        if (kakaoMap == null) return;
+        int current = getZoomLevel();
+        // 더 확대할 수 있는 한계: 서버가 낱개로 내려주는 줌 / SDK 최대 / 현재 화면에 걸린 줌 제한(주변 모드 등) 중 가장 작은 값
+        int maxZoom = Math.min(AppConfig.CLUSTER_MAX_ZOOM,
+                Math.min(kakaoMap.getMaxZoomLevel(), cameraMaxLevel));
+        if (current >= maxZoom) {
+            // 더 확대할 수 없는데도 묶여 있으면(같은 장소 여러 개) 줌을 바꾸지 않고 대표 글을 연다
             if (guestbookClickListener != null) guestbookClickListener.onGuestbookClick(g);
             return;
         }
-        moveCameraInternal(g.getLatitude(), g.getLongitude(), Math.min(cur + 2, maxZoom), false);
+        moveCameraInternal(g.getLatitude(), g.getLongitude(), Math.min(current + 2, maxZoom), false);
     }
 }
