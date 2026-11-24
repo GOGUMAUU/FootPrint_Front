@@ -16,7 +16,6 @@ import com.example.footprint.databinding.ActivityProfileMapBinding;
 import com.example.footprint.map.FootprintMapController;
 import com.example.footprint.data.model.Guestbook;
 import com.example.footprint.util.AppConfig;
-import com.example.footprint.util.MockGuestbooks;
 import com.kakao.vectormap.KakaoMap;
 import com.kakao.vectormap.KakaoMapReadyCallback;
 import com.kakao.vectormap.LatLng;
@@ -73,13 +72,6 @@ public class ProfileMapActivity extends AppCompatActivity {
         double[] bounds = map.estimateVisibleBounds();
         if (bounds == null) return;
         int zoom = map.getZoomLevel();
-
-        if (AppConfig.USE_MOCK_DATA) {
-            List<Guestbook> mockList = MockGuestbooks.inBounds(
-                    "user", bounds, zoom, zoom < AppConfig.ZOOM_DETAIL ? "popular" : "latest");
-            map.showGuestbooks(mockList);
-            return;
-        }
 
         if (boundsCall != null && !boundsCall.isCanceled()) boundsCall.cancel();
         boundsCall = ApiClient.get().getGuestbooksInBounds(
