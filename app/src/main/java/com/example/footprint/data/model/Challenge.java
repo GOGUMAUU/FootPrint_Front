@@ -7,6 +7,7 @@ public class Challenge {
     public String regionName;
     public boolean locationVerified;
     public boolean isCompleted;
+
     // 도전과제를 달성한 전체 인원 수
     public long completedCount;
 
@@ -16,4 +17,13 @@ public class Challenge {
 
     // 현재 위치에서 도전과제까지의 거리 (미터)
     public float distanceMeters = Float.MAX_VALUE;
+
+    // 도전과제 카테고리
+    public String category;
+
+    // 도전과제 생성자 ID
+    public Long creatorId;
+
+    // 도전과제 유형
+    public String questType;
 }

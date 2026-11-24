@@ -8,7 +8,6 @@ public class ChallengeListResponse {
 
     public List<ChallengeItem> challenges;
 
-
     public static class ChallengeItem {
         public Long challengeId;
         public String title;
@@ -16,12 +15,18 @@ public class ChallengeListResponse {
         public String category;
         public String iconUrl;
         public boolean isCompleted;
-        // 서버에서 전달받는 도전과제 달성 인원
+
+        // 도전과제 달성 인원
         public long completedCount;
 
-        // 서버에서 전달받는 도전과제 목표 좌표
+        // 도전과제 목표 좌표
         public double latitude;
         public double longitude;
-    }
 
+        // 도전과제 생성자 ID
+        public Long creatorId;
+
+        // 도전과제 유형
+        public String questType;
+    }
 }

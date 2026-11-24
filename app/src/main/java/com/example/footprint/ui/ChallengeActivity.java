@@ -17,6 +17,7 @@ import com.example.footprint.data.model.Challenge;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
@@ -43,17 +44,80 @@ import retrofit2.converter.gson.GsonConverterFactory;
 import android.util.Log;
 import android.widget.Toast;
 
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.os.Handler;
+import android.os.Looper;
+import java.util.Locale;
+import android.widget.ArrayAdapter;
+
+import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.example.footprint.databinding.BottomSheetChallengeFilterBinding;
+
+
 public class ChallengeActivity extends AppCompatActivity {
 
     private ActivityChallengeBinding binding;
 
-    // 현재 선택된 필터
+    // 상단 카테고리 필터
     private String selectedFilter = "all";
+
+    // 상세 필터
+    private String selectedRegion = null;
+    private String selectedQuestType = null;
+    private Boolean selectedCompleted = null;
+
+    // 위치 인증된 기본 지역
+// 아직 인증된 지역 정보가 없으므로 전체 지역으로 설정
+    private String defaultRegion = null;
+    // 사용자가 직접 필터를 적용했는지 확인
+    private boolean isRegionManuallySelected = false;
+
+    // 현재 위치 기반 지역 조회 요청
+    private Call<Map<String, String>> regionCall;
+
+    // 자동 지역 설정 완료 여부
+    private boolean isDefaultRegionInitialized = false;
+
+    // 지역 선택 목록
+    private final String[] regionOptions = {
+            "전체 지역",
+            "서울",
+            "경기",
+            "인천",
+            "강원",
+            "충북",
+            "충남",
+            "대전",
+            "세종",
+            "전북",
+            "전남",
+            "광주",
+            "경북",
+            "경남",
+            "대구",
+            "울산",
+            "부산",
+            "제주"
+    };
+
+    // 제목 검색어
+    private String searchKeyword = "";
+
+    // 검색 요청 지연 처리
+    private final Handler searchHandler =
+            new Handler(Looper.getMainLooper());
+
+    private Runnable searchRunnable;
+
+    // 현재 진행 중인 API 요청
+    private Call<ChallengeListResponse> challengeCall;
     private ChallengeAdapter challengeAdapter;
     private final List<Challenge> allChallenges = new ArrayList<>();
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 2001;
     private FusedLocationProviderClient fusedLocationClient;
     private Location currentLocation;
+    private boolean firstResume = true;
 
 
     @Override
@@ -120,8 +184,13 @@ public class ChallengeActivity extends AppCompatActivity {
         binding.rvAchievableChallenges.setAdapter(challengeAdapter);
 
 
-        // 백엔드에서 실제 도전과제 목록 불러오기
-        loadChallenges();
+        // 제목 검색창 연결
+        setupSearch();
+
+        // 상세 필터 버튼 클릭
+        binding.btnChallengeAdvancedFilter.setOnClickListener(v ->
+                showAdvancedFilter()
+        );
 
         // 아래로 당겨서 새로고침
         binding.swipeRefreshLayout.setOnRefreshListener(() -> {
@@ -136,10 +205,34 @@ public class ChallengeActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 
-        // 상세 화면에서 돌아왔을 때 도전과제 목록 갱신
+        // 최초 실행 시 중복 조회 방지
+        if (firstResume) {
+            firstResume = false;
+            return;
+        }
+
+        // 상세 화면에서 돌아왔을 때 목록 갱신
         if (challengeAdapter != null) {
             loadChallenges();
         }
+    }
+    @Override
+    protected void onDestroy() {
+
+        if (searchRunnable != null) {
+            searchHandler.removeCallbacks(searchRunnable);
+        }
+
+        if (challengeCall != null) {
+            challengeCall.cancel();
+        }
+
+        // 주소 변환 API 요청 취소
+        if (regionCall != null) {
+            regionCall.cancel();
+        }
+
+        super.onDestroy();
     }
 
 
@@ -171,6 +264,9 @@ public class ChallengeActivity extends AppCompatActivity {
                 activateFilter(binding.btnFilterFollowing);
                 break;
         }
+
+        // 선택된 필터 조건으로 목록 다시 조회
+        loadChallenges();
     }
 
     // 선택되지 않은 필터 디자인
@@ -193,12 +289,36 @@ public class ChallengeActivity extends AppCompatActivity {
         );
     }
 
-    // 실제 도전과제 목록
+    // 필터 조건에 맞는 도전과제 목록 조회
     private void loadChallenges() {
 
         ApiService apiService = ApiClient.get();
 
-        apiService.getChallenges().enqueue(
+        // 이전 요청이 진행 중이라면 취소
+        if (challengeCall != null) {
+            challengeCall.cancel();
+        }
+
+        // 백엔드에 전달할 카테고리
+        String category = selectedFilter.equals("all")
+                ? null
+                : selectedFilter.toUpperCase(Locale.ROOT);
+
+        // 검색어가 비어 있으면 전체 검색
+        String keyword = searchKeyword.trim().isEmpty()
+                ? null
+                : searchKeyword.trim();
+
+        // 선택된 모든 필터 조건을 서버에 전달
+        challengeCall = apiService.getChallenges(
+                category,
+                selectedRegion,
+                selectedQuestType,
+                selectedCompleted,
+                keyword
+        );
+
+        challengeCall.enqueue(
                 new Callback<ChallengeListResponse>() {
 
                     @Override
@@ -206,42 +326,52 @@ public class ChallengeActivity extends AppCompatActivity {
                             Call<ChallengeListResponse> call,
                             Response<ChallengeListResponse> response
                     ) {
+                        // 이전 요청의 응답은 무시
+                        if (call != challengeCall || call.isCanceled()) {
+                            return;
+                        }
+
                         binding.swipeRefreshLayout.setRefreshing(false);
+
                         if (response.isSuccessful()
                                 && response.body() != null) {
-                            Log.d("ChallengeAPI",
-                                    "전체 도전과제 수: " + response.body().LocalChallenges_totalCount);
 
-                            for (ChallengeListResponse.ChallengeItem item : response.body().challenges) {
-                                Log.d("ChallengeAPI",
-                                        "도전과제 ID: " + item.challengeId
-                                                + ", 제목: " + item.title
-                                                + ", 완료 여부: " + item.isCompleted);
-                            }
+                            Log.d("ChallengeAPI",
+                                    "조회된 도전과제 수: "
+                                            + response.body().LocalChallenges_totalCount);
 
                             allChallenges.clear();
 
                             for (ChallengeListResponse.ChallengeItem item
                                     : response.body().challenges) {
 
-
                                 Challenge challenge = new Challenge();
+
                                 challenge.id = String.valueOf(item.challengeId);
                                 challenge.title = item.title;
                                 challenge.regionName = item.region;
                                 challenge.isCompleted = item.isCompleted;
-                                // 서버에서 받은 달성 인원 저장
+
+                                // 달성 인원
                                 challenge.completedCount = item.completedCount;
-                                // 서버에서 받은 도전과제 목표 좌표 저장
+
+                                // 목표 좌표
                                 challenge.latitude = item.latitude;
                                 challenge.longitude = item.longitude;
 
-                                allChallenges.add(challenge);
+                                // 필터링 관련 데이터
+                                challenge.category = item.category;
+                                challenge.creatorId = item.creatorId;
+                                challenge.questType = item.questType;
 
+                                allChallenges.add(challenge);
                             }
 
-                            challengeAdapter.setChallenges(allChallenges);
+                            // 기존 GPS 거리 계산 및 정렬 유지
                             updateChallengeDistances();
+
+                            // 필터링된 목록을 화면에 표시
+                            challengeAdapter.setChallenges(allChallenges);
 
                         } else {
                             Log.e("ChallengeAPI",
@@ -260,7 +390,13 @@ public class ChallengeActivity extends AppCompatActivity {
                             Call<ChallengeListResponse> call,
                             Throwable t
                     ) {
+                        // 취소된 요청이나 이전 요청의 오류는 무시
+                        if (call != challengeCall || call.isCanceled()) {
+                            return;
+                        }
+
                         binding.swipeRefreshLayout.setRefreshing(false);
+
                         Log.e("ChallengeAPI", "서버 연결 실패", t);
 
                         Toast.makeText(
@@ -271,6 +407,423 @@ public class ChallengeActivity extends AppCompatActivity {
                     }
                 }
         );
+    }
+
+    // 도전과제 제목 검색
+    private void setupSearch() {
+
+        binding.etChallengeSearch.addTextChangedListener(
+                new TextWatcher() {
+
+                    @Override
+                    public void beforeTextChanged(
+                            CharSequence s,
+                            int start,
+                            int count,
+                            int after
+                    ) {
+                    }
+
+                    @Override
+                    public void onTextChanged(
+                            CharSequence s,
+                            int start,
+                            int before,
+                            int count
+                    ) {
+                        searchKeyword = s.toString();
+
+                        // 이전 검색 예약 취소
+                        if (searchRunnable != null) {
+                            searchHandler.removeCallbacks(searchRunnable);
+                        }
+
+                        // 400ms 후 검색 실행
+                        searchRunnable = () -> loadChallenges();
+
+                        searchHandler.postDelayed(
+                                searchRunnable,
+                                400
+                        );
+                    }
+
+                    @Override
+                    public void afterTextChanged(Editable s) {
+                    }
+                }
+        );
+    }
+
+    // 상세 필터 BottomSheet 표시
+    private void showAdvancedFilter() {
+
+        // BottomSheet 생성
+        BottomSheetDialog dialog =
+                new BottomSheetDialog(this);
+
+        // 상세 필터 XML 연결
+        BottomSheetChallengeFilterBinding filterBinding =
+                BottomSheetChallengeFilterBinding.inflate(
+                        getLayoutInflater()
+                );
+
+        dialog.setContentView(filterBinding.getRoot());
+
+        // 1. 지역 선택 Spinner 설정
+        ArrayAdapter<String> regionAdapter =
+                new ArrayAdapter<>(
+                        this,
+                        android.R.layout.simple_spinner_item,
+                        regionOptions
+                );
+
+        regionAdapter.setDropDownViewResource(
+                android.R.layout.simple_spinner_dropdown_item
+        );
+
+        filterBinding.spinnerRegion.setAdapter(regionAdapter);
+
+
+        // 2. 기존에 적용한 지역 복원
+        filterBinding.spinnerRegion.setSelection(
+                getRegionIndex(selectedRegion)
+        );
+
+
+        // 3. 기존에 적용한 도전과제 유형 복원
+        if ("SINGLE".equals(selectedQuestType)) {
+
+            filterBinding.rgChallengeType.check(
+                    R.id.rbTypeSingle
+            );
+
+        } else if ("MULTI".equals(selectedQuestType)) {
+
+            filterBinding.rgChallengeType.check(
+                    R.id.rbTypeMulti
+            );
+
+        } else {
+
+            filterBinding.rgChallengeType.check(
+                    R.id.rbTypeAll
+            );
+        }
+
+
+        // 4. 기존에 적용한 달성 상태 복원
+        if (Boolean.TRUE.equals(selectedCompleted)) {
+
+            filterBinding.rgChallengeStatus.check(
+                    R.id.rbStatusCompleted
+            );
+
+        } else if (Boolean.FALSE.equals(selectedCompleted)) {
+
+            filterBinding.rgChallengeStatus.check(
+                    R.id.rbStatusIncomplete
+            );
+
+        } else {
+
+            filterBinding.rgChallengeStatus.check(
+                    R.id.rbStatusAll
+            );
+        }
+
+
+        // 5. 닫기 버튼
+        filterBinding.btnCloseFilter.setOnClickListener(v ->
+                dialog.dismiss()
+        );
+
+
+        // 6. 초기화 버튼
+        filterBinding.btnResetFilter.setOnClickListener(v -> {
+
+            // 위치 인증된 기본 지역으로 복원
+            filterBinding.spinnerRegion.setSelection(
+                    getRegionIndex(defaultRegion)
+            );
+
+            // 도전과제 유형 전체
+            filterBinding.rgChallengeType.check(
+                    R.id.rbTypeAll
+            );
+
+            // 달성 상태 전체
+            filterBinding.rgChallengeStatus.check(
+                    R.id.rbStatusAll
+            );
+        });
+
+
+        // 7. 필터 적용 버튼
+        filterBinding.btnApplyFilter.setOnClickListener(v -> {
+
+            // 사용자가 직접 필터를 적용했음을 기록
+            isRegionManuallySelected = true;
+            // 선택된 지역 저장
+            int regionPosition =
+                    filterBinding.spinnerRegion
+                            .getSelectedItemPosition();
+
+            selectedRegion = regionPosition <= 0
+                    ? null
+                    : regionOptions[regionPosition];
+
+
+            // 선택된 도전과제 유형 저장
+            int typeId =
+                    filterBinding.rgChallengeType
+                            .getCheckedRadioButtonId();
+
+            if (typeId == R.id.rbTypeSingle) {
+
+                selectedQuestType = "SINGLE";
+
+            } else if (typeId == R.id.rbTypeMulti) {
+
+                selectedQuestType = "MULTI";
+
+            } else {
+
+                selectedQuestType = null;
+            }
+
+
+            // 선택된 달성 상태 저장
+            int statusId =
+                    filterBinding.rgChallengeStatus
+                            .getCheckedRadioButtonId();
+
+            if (statusId == R.id.rbStatusCompleted) {
+
+                selectedCompleted = true;
+
+            } else if (statusId == R.id.rbStatusIncomplete) {
+
+                selectedCompleted = false;
+
+            } else {
+
+                selectedCompleted = null;
+            }
+
+
+            // 선택한 필터 조건으로 목록 다시 조회
+            loadChallenges();
+
+            // BottomSheet 닫기
+            dialog.dismiss();
+        });
+
+
+        // BottomSheet 화면에 표시
+        dialog.show();
+    }
+
+    // 지역 이름에 해당하는 Spinner 위치 찾기
+    private int getRegionIndex(String region) {
+
+        // 전체 지역
+        if (region == null) {
+            return 0;
+        }
+
+        // 지역 목록에서 해당 지역 찾기
+        for (int i = 0; i < regionOptions.length; i++) {
+
+            if (regionOptions[i].equals(region)) {
+                return i;
+            }
+        }
+
+        // 해당 지역이 목록에 없으면 전체 지역
+        return 0;
+    }
+
+    // 주소에서 도전과제 필터에 사용할 지역명 추출
+    private String normalizeRegion(String address) {
+
+        if (address == null || address.trim().isEmpty()) {
+            return null;
+        }
+
+        // 주소의 첫 번째 단어 추출
+        String region = address.trim().split("\\s+")[0];
+
+        switch (region) {
+
+            case "서울특별시":
+            case "서울":
+                return "서울";
+
+            case "경기도":
+            case "경기":
+                return "경기";
+
+            case "인천광역시":
+            case "인천":
+                return "인천";
+
+            case "강원특별자치도":
+            case "강원도":
+            case "강원":
+                return "강원";
+
+            case "충청북도":
+            case "충북":
+                return "충북";
+
+            case "충청남도":
+            case "충남":
+                return "충남";
+
+            case "대전광역시":
+            case "대전":
+                return "대전";
+
+            case "세종특별자치시":
+            case "세종":
+                return "세종";
+
+            case "전북특별자치도":
+            case "전라북도":
+            case "전북":
+                return "전북";
+
+            case "전라남도":
+            case "전남":
+                return "전남";
+
+            case "광주광역시":
+            case "광주":
+                return "광주";
+
+            case "경상북도":
+            case "경북":
+                return "경북";
+
+            case "경상남도":
+            case "경남":
+                return "경남";
+
+            case "대구광역시":
+            case "대구":
+                return "대구";
+
+            case "울산광역시":
+            case "울산":
+                return "울산";
+
+            case "부산광역시":
+            case "부산":
+                return "부산";
+
+            case "제주특별자치도":
+            case "제주도":
+            case "제주":
+                return "제주";
+
+            default:
+                return null;
+        }
+    }
+
+    // 현재 GPS 위치를 기준으로 기본 지역 설정
+    private void initializeDefaultRegion(Location location) {
+
+        // 이미 초기화되었거나 요청 중이라면 실행하지 않음
+        if (isDefaultRegionInitialized || regionCall != null) {
+            return;
+        }
+
+        ApiService apiService = ApiClient.get();
+
+        regionCall = apiService.reverseGeocode(
+                location.getLatitude(),
+                location.getLongitude()
+        );
+
+        regionCall.enqueue(new Callback<Map<String, String>>() {
+
+            @Override
+            public void onResponse(
+                    Call<Map<String, String>> call,
+                    Response<Map<String, String>> response
+            ) {
+
+                if (call.isCanceled() || isDestroyed() || isFinishing()) {
+                    return;
+                }
+
+                regionCall = null;
+
+                if (response.isSuccessful()
+                        && response.body() != null) {
+
+                    Map<String, String> result = response.body();
+
+                    // 지번 주소에서 지역 추출
+                    String region = normalizeRegion(
+                            result.get("address")
+                    );
+
+                    // 지번 주소에서 추출하지 못하면 도로명 주소 사용
+                    if (region == null) {
+                        region = normalizeRegion(
+                                result.get("roadAddress")
+                        );
+                    }
+
+                    // 기본 지역 저장
+                    defaultRegion = region;
+
+                    isDefaultRegionInitialized = true;
+
+                    Log.d(
+                            "ChallengeRegion",
+                            "자동 설정된 기본 지역: " + defaultRegion
+                    );
+
+                    // 사용자가 직접 필터를 적용하지 않은 경우만
+                    // 자동으로 지역 필터 적용
+                    if (!isRegionManuallySelected) {
+
+                        selectedRegion = defaultRegion;
+
+                        loadChallenges();
+                    }
+
+                } else {
+
+                    Log.e(
+                            "ChallengeRegion",
+                            "주소 변환 실패: " + response.code()
+                    );
+                }
+            }
+
+            @Override
+            public void onFailure(
+                    Call<Map<String, String>> call,
+                    Throwable t
+            ) {
+
+                if (call.isCanceled() || isDestroyed() || isFinishing()) {
+                    return;
+                }
+
+                regionCall = null;
+
+                Log.e(
+                        "ChallengeRegion",
+                        "주소 변환 API 연결 실패",
+                        t
+                );
+            }
+        });
     }
 
     private void updateChallengeDistances() {
@@ -365,12 +918,13 @@ public class ChallengeActivity extends AppCompatActivity {
 
             if (location != null) {
                 currentLocation = location;
+
                 updateChallengeDistances();
 
-                binding.tvCurrentLocation.setText(
-                        "현재 위치 확인 완료"
-                );
+                binding.tvCurrentLocation.setText("가까운 순");
 
+                // 현재 GPS 기반 기본 지역 자동 설정
+                initializeDefaultRegion(location);
             } else {
                 binding.tvCurrentLocation.setText(
                         "현재 위치를 확인할 수 없습니다."

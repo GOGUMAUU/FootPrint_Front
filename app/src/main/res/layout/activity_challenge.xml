@@ -58,20 +58,6 @@
 
     </LinearLayout>
 
-    <!-- 현재 위치 안내 -->
-    <TextView
-        android:id="@+id/tvCurrentLocation"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="12dp"
-        android:padding="12dp"
-        android:background="@drawable/bg_filter_normal"
-        android:text="현재 위치 확인 중..."
-        android:textColor="#397C4A"
-        android:textSize="13sp" />
-
     <!-- 검색창 -->
     <LinearLayout
         android:layout_width="match_parent"
@@ -109,16 +95,52 @@
 
     </LinearLayout>
 
-    <!-- 목록 제목 -->
-    <TextView
+    <!-- 목록 제목 + 현재 위치 안내 -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
         android:paddingStart="18dp"
-        android:paddingBottom="10dp"
-        android:text="도전과제 목록"
-        android:textColor="#397C4A"
-        android:textSize="18sp"
-        android:textStyle="bold" />
+        android:paddingEnd="18dp"
+        android:paddingBottom="10dp">
+
+        <!-- 목록 제목 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="도전과제 목록"
+            android:textColor="#397C4A"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <!-- 제목과 위치 안내 사이의 여백 -->
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <!-- 현재 위치 아이콘 -->
+        <ImageView
+            android:layout_width="14dp"
+            android:layout_height="14dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="4dp"
+            android:src="@drawable/ic_location_pin"
+            android:contentDescription="@null"
+            app:tint="#65836A" />
+
+        <!-- 현재 위치 상태 -->
+        <TextView
+            android:id="@+id/tvCurrentLocation"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:maxWidth="160dp"
+            android:text="위치 확인 중..."
+            android:textColor="#65836A"
+            android:textSize="12sp" />
+
+    </LinearLayout>
 
     <!-- 필터 영역 -->
     <LinearLayout
