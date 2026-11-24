@@ -45,7 +45,10 @@ public final class ProfileRepository {
         call.enqueue(new Callback<JsonObject>() {
             public void onResponse(Call<JsonObject> c, Response<JsonObject> r) {
                 if (!r.isSuccessful() || r.body() == null) { result.complete(null, "프로필 요청 실패 (" + r.code() + ")"); return; }
-                result.complete(new Gson().fromJson(r.body(), UserProfile.class), null);
+                UserProfile profile;
+                try { profile = UserProfile.fromApi(r.body()); }
+                catch (RuntimeException e) { result.complete(null, "프로필 응답 형식을 확인해 주세요."); return; }
+                result.complete(profile, null);
             }
             public void onFailure(Call<JsonObject> c, Throwable t) { if (!c.isCanceled()) result.complete(null, "네트워크 연결을 확인해 주세요."); }
         }); return call;

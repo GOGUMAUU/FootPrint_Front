@@ -27,6 +27,10 @@ public final class RelationListViewModel extends ViewModel {
             for (Long id : MockRelations.list(type, userId)) { Row row = new Row(); row.userId = id; row.relationId = id; row.nickname = id == 0 ? "나" : "산책친구 " + id; all.add(row); }
             rows.setValue(new ArrayList<>(all)); more.setValue(false); busy.setValue(false); return;
         }
+        if (type.equals("sent")) {
+            error.setValue("현재 보낸 요청 목록을 조회할 수 없습니다.");
+            more.setValue(false); busy.setValue(false); return;
+        }
         RelationshipApi api = ApiClient.create(RelationshipApi.class);
         Call<JsonObject> call = type.equals("requests") ? api.requests(page,20) : type.equals("blocks") ? api.blocks(page,20) : type.equals("followers") ? api.followers(userId,page,20) : api.following(userId,page,20);
         pending = call;

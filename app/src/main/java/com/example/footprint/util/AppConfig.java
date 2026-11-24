@@ -19,7 +19,7 @@ public final class AppConfig {
     public static final int NEARBY_MAX_ZOOM = 19;
 
     // 서버 MapService.CLUSTER_MAX_ZOOM 과 같은 값 (이 줌부터 낱개)
-    public static final int CLUSTER_MAX_ZOOM = 17;
+    public static final int CLUSTER_MAX_ZOOM = 20;
 
     // Zoom policy: lower zoom = representative/popular records only.
     public static final double ZOOM_COUNTRY = 6.5;

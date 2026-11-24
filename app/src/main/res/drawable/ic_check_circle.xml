@@ -4,7 +4,6 @@
     android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
-
     <!-- 동그라미 테두리 -->
     <path
         android:fillColor="@android:color/transparent"
@@ -13,7 +12,6 @@
         android:strokeLineCap="round"
         android:strokeLineJoin="round"
         android:pathData="M20.5,11 A8.5,8.5 0,1 1,17.5 5" />
-
     <!-- 체크 표시 -->
     <path
         android:fillColor="@android:color/transparent"
@@ -22,5 +20,4 @@
         android:strokeLineCap="round"
         android:strokeLineJoin="round"
         android:pathData="M8,12 L11,15 L21,5" />
-
 </vector>

@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="100dp"
     android:layout_marginBottom="6dp"
     android:background="#F2F2F2">
-
     <!-- 카드 기본 배경 -->
     <View
         android:layout_width="match_parent"
@@ -18,7 +16,6 @@
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:background="#9E9E9E" />
-
     <!-- 도전과제 정보 -->
     <LinearLayout
         android:layout_width="match_parent"
@@ -26,7 +23,6 @@
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:padding="12dp">
-
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -38,7 +34,7 @@
                 android:id="@+id/tvChallengeTitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="도전과제 제목"
+                android:text="@string/item_achievable_challenge_tv_challenge_title_text"
                 android:textColor="#222222"
                 android:textSize="16sp"
                 android:textStyle="bold"
@@ -77,11 +73,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="12dp"
-            android:text="0%"
+            android:text="@string/activity_challenge_detail_tv_detail_progress_text"
             android:textColor="#222222"
             android:textSize="14sp"
             android:textStyle="bold" />
-
     </LinearLayout>
-
 </FrameLayout>

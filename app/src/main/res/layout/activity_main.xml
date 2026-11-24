@@ -14,38 +14,194 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <HorizontalScrollView
-        android:id="@+id/filterScroll"
+    <LinearLayout
+        android:id="@+id/topModeContainer"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_margin="30dp"
-        android:fillViewport="false"
-        android:scrollbars="none"
-        app:layout_constraintTop_toTopOf="parent"
+        android:layout_height="48dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="10dp"
+        android:background="@drawable/bg_pill_container"
+        android:orientation="horizontal"
+        android:padding="4dp"
+        app:layout_constraintEnd_toStartOf="@id/btnFilter"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-            <Button android:id="@+id/btnNearby" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="주변" />
-            <Button android:id="@+id/btnFollowing" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="팔로잉 지도" />
-            <Button android:id="@+id/btnMyMap" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="내 지도" />
-            <Button android:id="@+id/btnSort" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="거리순" />
-            <Button android:id="@+id/btnFilter" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="필터" />
-            <Button android:id="@+id/btnUsers" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="사용자 찾기" />
-            <Button android:id="@+id/btnChallenges" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="도전과제" />
-        </LinearLayout>
-    </HorizontalScrollView>
+        app:layout_constraintTop_toTopOf="parent">
 
-    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnNearby"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/bg_toggle_item"
+            android:stateListAnimator="@null"
+            android:text="주변"
+            android:textColor="@color/selector_toggle_text"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnFollowing"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/bg_toggle_item"
+            android:stateListAnimator="@null"
+            android:text="팔로잉"
+            android:textColor="@color/selector_toggle_text"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- 2. 우측 상단 플로팅 필터 버튼 -->
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btnFilter"
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="20dp"
+        android:background="@drawable/bg_pill_container"
+        android:elevation="4dp"
+        android:minWidth="68dp"
+        android:paddingHorizontal="16dp"
+        android:stateListAnimator="@null"
+        android:text="필터"
+        android:textColor="#5C432D"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- 우측 상단 필터 바로 아래: 거리순/인기순 토글 버튼 (주변 모드 전용) -->
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btnSort"
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="20dp"
+        android:background="@drawable/bg_pill_container"
+        android:elevation="3dp"
+        android:minWidth="68dp"
+        android:paddingHorizontal="14dp"
+        android:stateListAnimator="@null"
+        android:text="거리순"
+        android:textColor="#5C432D"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btnFilter" />
+
+    <!-- 3. 하단 내비게이션 바: 지도 / 내 지도 / 친구 / 챌린지 / 내 정보 -->
+    <LinearLayout
+        android:id="@+id/bottomNavBar"
+        android:layout_width="0dp"
+        android:layout_height="76dp"
+        android:background="@drawable/bg_bottom_bar"
+        android:elevation="8dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:paddingHorizontal="10dp"
+        android:paddingVertical="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnMap"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/bg_bottom_item"
+            android:drawableTop="@android:drawable/ic_dialog_map"
+            android:drawableTint="#5C432D"
+            android:paddingTop="6dp"
+            android:stateListAnimator="@null"
+            android:text="지도"
+            android:textColor="#5C432D"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnMyMap"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/bg_bottom_item"
+            android:drawableTop="@android:drawable/ic_menu_mylocation"
+            android:drawableTint="#5C432D"
+            android:paddingTop="6dp"
+            android:stateListAnimator="@null"
+            android:text="내 지도"
+            android:textColor="#5C432D"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnUsers"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/bg_bottom_item"
+            android:drawableTop="@android:drawable/ic_menu_search"
+            android:drawableTint="#5C432D"
+            android:paddingTop="6dp"
+            android:stateListAnimator="@null"
+            android:text="친구"
+            android:textColor="#5C432D"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnChallenges"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/bg_bottom_item"
+            android:drawableTop="@android:drawable/btn_star_big_off"
+            android:drawableTint="#5C432D"
+            android:paddingTop="6dp"
+            android:stateListAnimator="@null"
+            android:text="챌린지"
+            android:textColor="#5C432D"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnProfile"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/bg_bottom_item"
+            android:drawableTop="@android:drawable/ic_menu_myplaces"
+            android:drawableTint="#5C432D"
+            android:paddingTop="6dp"
+            android:stateListAnimator="@null"
+            android:text="내 정보"
+            android:textColor="#5C432D"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/fabCreate"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="52dp"
         android:layout_margin="20dp"
+        android:background="@drawable/bg_fp_btn_coral"
+        android:drawableStart="@drawable/ic_fp_pencil"
+        android:drawablePadding="8dp"
+        android:fontFamily="@font/jua"
+        android:minWidth="0dp"
+        android:minHeight="0dp"
+        android:paddingStart="22dp"
+        android:paddingEnd="24dp"
+        android:paddingBottom="5dp"
+        android:stateListAnimator="@null"
         android:text="방명록 남기기"
-        app:icon="@android:drawable/ic_input_add"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent" />
+        android:textAllCaps="false"
+        android:textColor="#4A2A1A"
+        android:textSize="17sp"
+        app:layout_constraintBottom_toTopOf="@id/bottomNavBar"
+        app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

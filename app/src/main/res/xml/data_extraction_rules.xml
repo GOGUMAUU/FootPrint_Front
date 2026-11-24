@@ -1,11 +1,14 @@
-<?xml version="1.0" encoding="utf-8"?><!--
+<?xml version="1.0" encoding="utf-8"?>
+<!--
    Sample data extraction rules file; uncomment and customize as necessary.
    See https://developer.android.com/about/versions/12/backup-restore#xml-changes
    for details.
 -->
 <data-extraction-rules>
     <cloud-backup>
-        <exclude domain="sharedpref" path="auth_tokens.xml" />
+        <exclude
+            domain="sharedpref"
+            path="auth_tokens.xml" />
         <!-- TODO: Use <include> and <exclude> to control what is backed up.
         <include .../>
         <exclude .../>
@@ -18,6 +21,8 @@
     </device-transfer>
     -->
     <device-transfer>
-        <exclude domain="sharedpref" path="auth_tokens.xml" />
+        <exclude
+            domain="sharedpref"
+            path="auth_tokens.xml" />
     </device-transfer>
 </data-extraction-rules>
