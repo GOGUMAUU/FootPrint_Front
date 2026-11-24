@@ -47,23 +47,22 @@ public class ChallengeAdapter
 
         Challenge challenge = challenges.get(position);
 
-        // 도전과제 정보 표시
+        // 도전과제 제목 표시
         holder.binding.tvChallengeTitle.setText(challenge.title);
-        holder.binding.tvChallengeInfo.setText(challenge.regionName);
 
-// 현재 위치에서 도전과제까지의 거리 표시
+        // 현재 위치에서 도전과제까지의 거리 표시
         if (challenge.distanceMeters == Float.MAX_VALUE) {
 
             // GPS 위치를 확인하지 못한 경우
             holder.binding.tvChallengeDistance.setText("거리 확인 불가");
-
+            holder.binding.tvChallengeCompletedCount.setText("해당 도전과제를 " + challenge.completedCount + "명이 달성했어요!");
         } else if (challenge.distanceMeters < 1000) {
 
             // 1km 미만이면 m 단위
             int meters = Math.round(challenge.distanceMeters);
 
             holder.binding.tvChallengeDistance.setText(
-                    meters + "m"
+                    "목표까지" + meters + "m"
             );
 
         } else {
@@ -71,7 +70,7 @@ public class ChallengeAdapter
             // 1km 이상이면 km 단위 (소수점 첫째 자리)
             String distanceText = String.format(
                     java.util.Locale.KOREA,
-                    "%.1fkm",
+                    "목표까지 %.1fkm",
                     challenge.distanceMeters / 1000
             );
 

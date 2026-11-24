@@ -7,6 +7,8 @@ public class Challenge {
     public String regionName;
     public boolean locationVerified;
     public boolean isCompleted;
+    // 도전과제를 달성한 전체 인원 수
+    public long completedCount;
 
     // 도전과제 목표 위치
     public double latitude;

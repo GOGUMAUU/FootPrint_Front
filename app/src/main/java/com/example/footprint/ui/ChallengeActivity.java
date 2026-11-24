@@ -76,21 +76,11 @@ public class ChallengeActivity extends AppCompatActivity {
         // 현재 위치 확인 시작
         checkLocationPermission();
 
-        // 홈 버튼
+        // 뒤로가기 버튼
         binding.btnHome.setOnClickListener(v -> {
-            Intent intent = new Intent(
-                    ChallengeActivity.this,
-                    MainActivity.class
-            );
-
-            intent.addFlags(
-                    Intent.FLAG_ACTIVITY_CLEAR_TOP |
-                            Intent.FLAG_ACTIVITY_SINGLE_TOP
-            );
-
-            startActivity(intent);
-            finish();
+            getOnBackPressedDispatcher().onBackPressed();
         });
+
 
         // 내 배지 버튼 클릭 시 배지 화면으로 이동
         binding.btnMyBadges.setOnClickListener(v -> {
@@ -240,7 +230,8 @@ public class ChallengeActivity extends AppCompatActivity {
                                 challenge.title = item.title;
                                 challenge.regionName = item.region;
                                 challenge.isCompleted = item.isCompleted;
-
+                                // 서버에서 받은 달성 인원 저장
+                                challenge.completedCount = item.completedCount;
                                 // 서버에서 받은 도전과제 목표 좌표 저장
                                 challenge.latitude = item.latitude;
                                 challenge.longitude = item.longitude;
