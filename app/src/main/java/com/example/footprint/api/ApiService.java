@@ -115,9 +115,18 @@ public interface ApiService {
     @POST("api/follow-requests/{followId}/reject")
     Call<Void> rejectFollow(@Path("followId") String followId);
 
-
     @GET("api/challenges")
     Call<ChallengeListResponse> getChallenges();
+
+    // 필터링된 도전과제 목록 조회
+    @GET("api/challenges")
+    Call<ChallengeListResponse> getChallenges(
+            @Query("category") String category,
+            @Query("region") String region,
+            @Query("questType") String questType,
+            @Query("isCompleted") Boolean isCompleted,
+            @Query("keyword") String keyword
+    );
 
     @POST("api/challenges/{challengeId}/verify-location")
     Call<Map<String, Object>> verifyChallengeLocation(
