@@ -40,6 +40,8 @@ public final class TokenManager {
     public synchronized AuthTokens read() {
         String saved = preferences.getString("pair", null);
         if (saved == null) return null;
+        // 다른 서버 주소로 빌드된 앱에서 받은 토큰이면 버린다 (예: 로컬 서버 → 배포 서버 전환)
+        if (!com.example.footprint.BuildConfig.API_BASE_URL.equals(preferences.getString("server", null))) { clear(); return null; }
         try {
             String[] parts = saved.split(":");
             Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
@@ -58,7 +60,7 @@ public final class TokenManager {
             cipher.init(Cipher.ENCRYPT_MODE, key());
             String value = Base64.encodeToString(cipher.getIV(), Base64.NO_WRAP) + ":"
                     + Base64.encodeToString(cipher.doFinal(gson.toJson(tokens).getBytes(StandardCharsets.UTF_8)), Base64.NO_WRAP);
-            if (!preferences.edit().putString("pair", value).commit()) throw new IllegalStateException("Token persistence failed");
+            if (!preferences.edit().putString("pair", value).putString("server", com.example.footprint.BuildConfig.API_BASE_URL).commit()) throw new IllegalStateException("Token persistence failed");
             sessionInvalidated.postValue(false);
         } catch (Exception e) { throw new IllegalStateException("Cannot securely store credentials", e); }
     }
