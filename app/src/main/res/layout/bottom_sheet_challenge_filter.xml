@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="#FFFCF3"
+    android:padding="24dp">
+
+    <!-- 상단 드래그 표시 -->
+    <View
+        android:layout_width="40dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="20dp"
+        android:background="#D8D2C3" />
+
+    <!-- 제목 및 닫기 버튼 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="상세 필터"
+            android:textColor="#287D46"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/btnCloseFilter"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:gravity="center"
+            android:text="×"
+            android:textColor="#777777"
+            android:textSize="28sp"
+            android:contentDescription="필터 닫기" />
+
+    </LinearLayout>
+
+    <!-- 지역 선택 -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="지역"
+        android:textColor="#287D46"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
+    <Spinner
+        android:id="@+id/spinnerRegion"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="10dp"
+        android:backgroundTint="#287D46"
+        android:spinnerMode="dropdown" />
+
+    <!-- 도전과제 유형 -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="도전과제 유형"
+        android:textColor="#287D46"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
+    <RadioGroup
+        android:id="@+id/rgChallengeType"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:orientation="horizontal"
+        android:checkedButton="@id/rbTypeAll">
+
+        <RadioButton
+            android:id="@+id/rbTypeAll"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:buttonTint="#287D46"
+            android:text="전체"
+            android:textColor="#333333" />
+
+        <RadioButton
+            android:id="@+id/rbTypeSingle"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:buttonTint="#287D46"
+            android:text="일반 도전"
+            android:textColor="#333333" />
+
+        <RadioButton
+            android:id="@+id/rbTypeMulti"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:buttonTint="#287D46"
+            android:text="연속 도전"
+            android:textColor="#333333" />
+
+    </RadioGroup>
+
+    <!-- 달성 상태 -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="달성 상태"
+        android:textColor="#287D46"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
+    <RadioGroup
+        android:id="@+id/rgChallengeStatus"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:orientation="horizontal"
+        android:checkedButton="@id/rbStatusAll">
+
+        <RadioButton
+            android:id="@+id/rbStatusAll"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:buttonTint="#287D46"
+            android:text="전체"
+            android:textColor="#333333" />
+
+        <RadioButton
+            android:id="@+id/rbStatusIncomplete"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:buttonTint="#287D46"
+            android:text="미달성"
+            android:textColor="#333333" />
+
+        <RadioButton
+            android:id="@+id/rbStatusCompleted"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:buttonTint="#287D46"
+            android:text="달성 완료"
+            android:textColor="#333333" />
+
+    </RadioGroup>
+
+    <!-- 하단 구분선 -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="24dp"
+        android:background="#E7D5A8" />
+
+    <!-- 초기화 및 필터 적용 버튼 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btnResetFilter"
+            android:layout_width="0dp"
+            android:layout_height="52dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="8dp"
+            android:backgroundTint="#E2F1CF"
+            android:text="초기화"
+            android:textColor="#287D46"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/btnApplyFilter"
+            android:layout_width="0dp"
+            android:layout_height="52dp"
+            android:layout_weight="2"
+            android:backgroundTint="#287D46"
+            android:text="필터 적용하기"
+            android:textColor="#FFFFFF"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+</LinearLayout>
