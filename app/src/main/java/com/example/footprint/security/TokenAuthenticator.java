@@ -28,7 +28,12 @@ public final class TokenAuthenticator implements Authenticator {
                 if (sameToken) store.clear();
                 return null;
             }
-            if (!AuthErrorPolicy.canRefresh(errorCode)) return null;
+            if (!AuthErrorPolicy.canRefresh(errorCode)) {
+                // 갱신으로 살릴 수 없는 401(다른 서버/DB 초기화로 무효가 된 토큰 등)은 세션을 버리고 로그인 화면으로 보낸다.
+                // 그대로 두면 토큰만 남은 "유령 로그인" 상태가 된다.
+                if (sameToken) store.clear();
+                return null;
+            }
             if (response.priorResponse() != null) {
                 if (sameToken) store.clear();
                 return null;
