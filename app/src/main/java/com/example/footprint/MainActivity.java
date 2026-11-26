@@ -60,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
     private Call<List<Guestbook>> boundsCall;
 
     private String mode = "nearby"; // nearby | following | me
-    private String sort = "distance"; // 주변 모드 정렬: distance | popular
+    private String lastPick; // 마지막으로 지도에 적용한 말풍선 대표 기준
 
     private Long selectedFollowingUserId = null;
     private android.widget.Button profileButton;
@@ -77,6 +77,7 @@ public class MainActivity extends AppCompatActivity {
         // ── 공통 지도 컴포넌트 ──
         map = new FootprintMapController(this, binding.mapView);
         map.setOnGuestbookClickListener(this::openGuestbook);
+        map.setOnClusterClickListener(this::openBoard);
         map.setOnCameraIdleListener((center, zoom) -> scheduleReloadForCamera());
         map.start(() -> switchMode("nearby"));
 
@@ -125,15 +126,10 @@ public class MainActivity extends AppCompatActivity {
         });
          */
         binding.btnChallenges.setOnClickListener(v -> com.example.footprint.ui.LocationConsent.request(this, () -> startActivity(new Intent(this, ChallengeActivity.class))));
+        binding.btnMyLocation.setOnClickListener(v -> goToMyLocation());
         binding.btnNearby.setOnClickListener(v -> switchMode("nearby"));
         binding.btnFollowing.setOnClickListener(v -> switchMode("following"));
         binding.btnMyMap.setOnClickListener(v -> switchMode("me"));
-        binding.btnSort.setOnClickListener(v -> {
-            sort = "distance".equals(sort) ? "popular" : "distance";
-            binding.btnSort.setText("distance".equals(sort) ? "거리순" : "인기순");
-            map.clearGuestbooks();
-            scheduleReloadForCamera();
-        });
         //binding.btnFilter.setOnClickListener(v -> Toast.makeText(this, "필터 UI: 연령대 · 최근 N일 · 인기/최신", Toast.LENGTH_SHORT).show());
         binding.btnFilter.setOnClickListener(v -> {
             com.example.footprint.ui.FilterBottomSheetDialog dialog =
@@ -179,6 +175,23 @@ public class MainActivity extends AppCompatActivity {
         scheduleReloadForCamera();
     }
 
+    /** 내 위치로 가기: 주변 모드는 기본 줌, 그 외에는 동네가 보일 만큼은 확대해서 이동 */
+    private void goToMyLocation() {
+        if (!map.isReady()) return;
+        if (currentLocation == null) {
+            Toast.makeText(this, "내 위치를 찾는 중이에요. 잠시 후 다시 눌러 주세요.", Toast.LENGTH_SHORT).show();
+            ensureLocationPermissionAndLoad();
+            return;
+        }
+        double lat = currentLocation.getLatitude(), lng = currentLocation.getLongitude();
+        int zoom = "nearby".equals(mode)
+                ? AppConfig.NEARBY_DEFAULT_ZOOM
+                : Math.max(map.getZoomLevel(), (int) Math.round(AppConfig.ZOOM_DETAIL));
+        if ("nearby".equals(mode)) map.setRadiusLimit(lat, lng, AppConfig.NEARBY_MAX_RADIUS_METERS);
+        map.moveCamera(lat, lng, zoom);
+        scheduleReloadForCamera(); // moveCamera 는 idle 재조회를 막으므로 직접 다시 불러옴
+    }
+
     /** 모드별 줌 범위 + 반경 제한 */
     private void applyModeCameraPolicy() {
         if ("nearby".equals(mode)) {
@@ -198,8 +211,6 @@ public class MainActivity extends AppCompatActivity {
         binding.btnFollowing.setSelected("following".equals(mode));
         binding.btnMyMap.setSelected("me".equals(mode));
         binding.btnMap.setSelected(!"me".equals(mode));
-        // 거리순/인기순 토글은 주변 모드에서만
-        binding.btnSort.setVisibility("nearby".equals(mode) ? android.view.View.VISIBLE : android.view.View.GONE);
     }
 
     // ───────────────────────── 위치 ─────────────────────────
@@ -298,7 +309,8 @@ public class MainActivity extends AppCompatActivity {
                     currentLocation.getLatitude(),
                     currentLocation.getLongitude(),
                     zoom,
-                    sort
+                    com.example.footprint.util.MapPrefs.pick(this),
+                    filterState.getPeriod()
             );
             nearbyCall.enqueue(new Callback<>() {
                 @Override
@@ -329,7 +341,7 @@ public class MainActivity extends AppCompatActivity {
                     bounds[3],
                     filterState.getPeriod(),
                     filterState.getAgeGroup(),
-                    zoom < AppConfig.ZOOM_DETAIL ? "popular" : "latest"
+                    com.example.footprint.util.MapPrefs.pick(this)
             );
             boundsCall.enqueue(new Callback<>() {
                 @Override
@@ -353,7 +365,15 @@ public class MainActivity extends AppCompatActivity {
         map.showGuestbooks(list);
     }
 
-    /** 클러스터 클릭(줌인)은 지도 컴포넌트가 처리하고, 여기로는 일반 방명록만 들어옴 */
+    /** 확대된 상태에서 묶인 말풍선을 누르면: 그 자리의 방명록을 게시판(바텀시트)으로 보여줌 */
+    private void openBoard(Guestbook cluster) {
+        com.example.footprint.ui.GuestbookBoardSheet.show(getSupportFragmentManager(), cluster.getClusterIds(),
+                currentLocation == null ? null : currentLocation.getLatitude(),
+                currentLocation == null ? null : currentLocation.getLongitude(),
+                cluster.getLocationName(), "nearby".equals(mode));
+    }
+
+    /** 멀리서 본 클러스터 클릭(줌인)은 지도 컴포넌트가 처리하고, 여기로는 일반 방명록만 들어옴 */
     private void openGuestbook(Guestbook g) {
         if ("nearby".equals(mode) && !g.isAccessible()) {
             String distMsg = g.getDistanceMeter() != null
@@ -388,6 +408,13 @@ public class MainActivity extends AppCompatActivity {
         map.resume();
         if (map.isReady()) startLocationUpdates();
         refreshFollowDot();
+        // 마이페이지에서 '말풍선에 보일 글' 설정을 바꾸고 돌아왔으면 지도 다시 불러오기
+        String pick = com.example.footprint.util.MapPrefs.pick(this);
+        if (lastPick != null && !lastPick.equals(pick) && map.isReady()) {
+            map.clearGuestbooks();
+            scheduleReloadForCamera();
+        }
+        lastPick = pick;
     }
 
     private void refreshFollowDot() {

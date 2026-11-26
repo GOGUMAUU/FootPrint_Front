@@ -49,6 +49,8 @@ public class FootprintMapController {
     public interface OnReadyListener { void onReady(); }
     public interface OnGuestbookClickListener { void onGuestbookClick(@NonNull Guestbook guestbook); }
     public interface OnCameraIdleListener { void onCameraIdle(@NonNull LatLng center, int zoomLevel); }
+    /** 충분히 확대된 상태에서 클러스터를 누르면 호출 (게시판 목록 열기용) */
+    public interface OnClusterClickListener { void onClusterClick(@NonNull Guestbook cluster); }
 
     private static final String TAG = "FootprintMap";
     private static final String MY_LOCATION_LAYER_ID = "my_location";
@@ -68,6 +70,7 @@ public class FootprintMapController {
 
     @Nullable private OnGuestbookClickListener guestbookClickListener;
     @Nullable private OnCameraIdleListener cameraIdleListener;
+    @Nullable private OnClusterClickListener clusterClickListener;
 
     private long suppressIdleUntilMs = 0L;
 
@@ -138,6 +141,8 @@ public class FootprintMapController {
     public void setOnGuestbookClickListener(@Nullable OnGuestbookClickListener l) { guestbookClickListener = l; }
 
     public void setOnCameraIdleListener(@Nullable OnCameraIdleListener l) { cameraIdleListener = l; }
+
+    public void setOnClusterClickListener(@Nullable OnClusterClickListener l) { clusterClickListener = l; }
 
     // ───────────────────────── 카메라 ─────────────────────────
 
@@ -305,13 +310,22 @@ public class FootprintMapController {
         if (guestbookLayer != null) guestbookLayer.removeAll();
     }
 
-    /** 클러스터 클릭 → 줌인. 줌이 바뀌니 idle 이벤트를 막지 않아서 자동 재조회됨 */
+    /**
+     * 클러스터 클릭.
+     *  - 동네 단위 이상으로 확대된 상태(ZOOM_DETAIL 이상)이거나 더 확대할 수 없으면 → 게시판 목록(clusterClickListener)
+     *  - 아직 멀리서 보고 있으면 → 줌인. 줌이 바뀌니 idle 이벤트를 막지 않아서 자동 재조회됨
+     */
     private void zoomIntoCluster(Guestbook g) {
         if (kakaoMap == null) return;
         int current = getZoomLevel();
         // 더 확대할 수 있는 한계: 서버가 낱개로 내려주는 줌 / SDK 최대 / 현재 화면에 걸린 줌 제한(주변 모드 등) 중 가장 작은 값
         int maxZoom = Math.min(AppConfig.CLUSTER_MAX_ZOOM,
                 Math.min(kakaoMap.getMaxZoomLevel(), cameraMaxLevel));
+        boolean closeEnough = current >= maxZoom || current >= AppConfig.ZOOM_DETAIL;
+        if (closeEnough && clusterClickListener != null && g.hasClusterIds()) {
+            clusterClickListener.onClusterClick(g);
+            return;
+        }
         if (current >= maxZoom) {
             // 더 확대할 수 없는데도 묶여 있으면(같은 장소 여러 개) 줌을 바꾸지 않고 대표 글을 연다
             if (guestbookClickListener != null) guestbookClickListener.onGuestbookClick(g);

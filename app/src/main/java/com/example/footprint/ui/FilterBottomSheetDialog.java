@@ -95,12 +95,6 @@ public class FilterBottomSheetDialog extends BottomSheetDialogFragment {
     }
 
     private void restoreChipSelection() {
-        if ("popular".equals(currentState.getSort())) {
-            binding.chipSortPopular.setChecked(true);
-        } else {
-            binding.chipSortLatest.setChecked(true);
-        }
-
         if ("7d".equals(currentState.getPeriod())) {
             binding.chipPeriod7d.setChecked(true);
         } else if ("30d".equals(currentState.getPeriod())) {
@@ -195,8 +189,6 @@ public class FilterBottomSheetDialog extends BottomSheetDialogFragment {
     }
 
     private void saveChipSelection() {
-        int sortId = binding.chipGroupSort.getCheckedChipId();
-        currentState.setSort(sortId == R.id.chipSortPopular ? "popular" : "latest");
 
         int periodId = binding.chipGroupPeriod.getCheckedChipId();
         if (periodId == R.id.chipPeriod7d) currentState.setPeriod("7d");

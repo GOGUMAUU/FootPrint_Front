@@ -33,7 +33,9 @@ public final class UserProfileActivity extends AppCompatActivity {
             });
         }
         binding.settings.setVisibility(own ? View.VISIBLE : View.GONE);
-        for (View view : new View[]{binding.requests,binding.blocks,binding.editActions,binding.logout,binding.bottomNav}) view.setVisibility(own ? View.VISIBLE : View.GONE);
+        for (View view : new View[]{binding.requests,binding.blocks,binding.mapBubblePickDivider,binding.mapBubblePick,binding.editActions,binding.logout,binding.bottomNav}) view.setVisibility(own ? View.VISIBLE : View.GONE);
+        renderMapBubblePick(binding.mapBubblePick);
+        binding.mapBubblePick.setOnClickListener(v -> showMapBubblePickDialog(binding.mapBubblePick));
         binding.editProfile.setOnClickListener(v -> binding.editSection.setVisibility(binding.editSection.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE));
         binding.logout.setOnClickListener(v -> com.example.footprint.security.Session.logout(this));
         binding.privateAccount.setOnCheckedChangeListener((button, checked) -> {
@@ -118,4 +120,32 @@ public final class UserProfileActivity extends AppCompatActivity {
         if (model.profile.getValue() == null) model.load(id);
     }
     @Override protected void onResume() { super.onResume(); if (model != null) model.load(getIntent().getLongExtra("userId",0)); }
+
+    /** 지도 말풍선에 보일 글 선택 (다른 팝업과 같은 카드 스타일) */
+    private void showMapBubblePickDialog(android.widget.TextView row) {
+        View v = getLayoutInflater().inflate(com.example.footprint.R.layout.dialog_map_bubble_pick, null);
+        androidx.appcompat.app.AlertDialog dlg = new androidx.appcompat.app.AlertDialog.Builder(this).setView(v).create();
+        if (dlg.getWindow() != null) dlg.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        int[] ids = {com.example.footprint.R.id.optRecommended, com.example.footprint.R.id.optPopular, com.example.footprint.R.id.optLatest};
+        String current = com.example.footprint.util.MapPrefs.pick(this);
+        for (int i = 0; i < ids.length; i++) {
+            String value = com.example.footprint.util.MapPrefs.PICK_VALUES[i];
+            View option = v.findViewById(ids[i]);
+            option.setBackgroundResource(value.equals(current)
+                    ? com.example.footprint.R.drawable.bg_fp_pick_selected
+                    : com.example.footprint.R.drawable.bg_fp_pick_normal);
+            option.setOnClickListener(x -> {
+                com.example.footprint.util.MapPrefs.setPick(this, value);
+                renderMapBubblePick(row);
+                dlg.dismiss();
+            });
+        }
+        v.findViewById(com.example.footprint.R.id.btnPickClose).setOnClickListener(x -> dlg.dismiss());
+        dlg.show();
+    }
+
+    /** "지도 말풍선에 보일 글 · 추천" */
+    private void renderMapBubblePick(android.widget.TextView row) {
+        row.setText("지도 말풍선에 보일 글 · " + com.example.footprint.util.MapPrefs.pickLabel(this));
+    }
 }
