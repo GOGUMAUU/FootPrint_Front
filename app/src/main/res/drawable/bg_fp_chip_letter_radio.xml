@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 공개 범위 '편지 쓰기' 칩: 선택하면 연핑크 (나머지는 bg_fp_chip 과 같음) -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_checked="true">
+        <shape android:shape="rectangle">
+            <solid android:color="#F4A6B8" />
+            <corners android:radius="100dp" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#FFFDF4" />
+            <stroke android:width="3dp" android:color="#EAD9AE" />
+            <corners android:radius="100dp" />
+        </shape>
+    </item>
+</selector>

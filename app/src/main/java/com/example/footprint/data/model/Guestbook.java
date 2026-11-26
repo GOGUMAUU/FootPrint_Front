@@ -54,7 +54,7 @@ public class Guestbook {
 
     // 말풍선 텍스트. 클러스터면 "대표 글 외 N개"
     public String getShortText() {
-        if (isLetter()) return "💌 " + (nickname == null || nickname.isEmpty() ? "편지" : nickname + "의 편지");
+        if (isLetter()) return "💌"; // 편지는 말풍선에 봉투만 (누가 보냈는지는 열어 봐야 앎)
         String base;
         if (title != null && !title.isEmpty()) base = title;
         else if (content != null && !content.isEmpty()) base = content;

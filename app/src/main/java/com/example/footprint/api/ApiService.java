@@ -177,4 +177,8 @@ public interface ApiService {
     Call<PageResponse<UserSummary>> getUserFollowers(@Path("userId") long userId, @Query("size") int size);
     @GET("api/users/{userId}/following")
     Call<PageResponse<UserSummary>> getUserFollowing(@Path("userId") long userId);
+
+    @GET("api/users/{userId}/following")
+    Call<PageResponse<UserSummary>> getUserFollowing(@Path("userId") long userId,
+                                                     @Query("page") int page, @Query("size") int size);
 }
