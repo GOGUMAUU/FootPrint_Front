@@ -128,14 +128,6 @@ public class MainActivity extends AppCompatActivity {
         binding.btnNearby.setOnClickListener(v -> switchMode("nearby"));
         binding.btnFollowing.setOnClickListener(v -> switchMode("following"));
         binding.btnMyMap.setOnClickListener(v -> switchMode("me"));
-        /*binding.btnSort.setOnClickListener(v -> {
-            sort = "distance".equals(sort) ? "popular" : "distance";
-            binding.btnSort.setText("distance".equals(sort) ? "거리순" : "인기순");
-            map.clearGuestbooks();
-            scheduleReloadForCamera();
-        });
-         */
-        //binding.btnFilter.setOnClickListener(v -> Toast.makeText(this, "필터 UI: 연령대 · 최근 N일 · 인기/최신", Toast.LENGTH_SHORT).show());
         binding.btnFilter.setOnClickListener(v -> {
             com.example.footprint.ui.FilterBottomSheetDialog dialog =
                     com.example.footprint.ui.FilterBottomSheetDialog.newInstance(filterState, mode);
@@ -199,8 +191,6 @@ public class MainActivity extends AppCompatActivity {
         binding.btnFollowing.setSelected("following".equals(mode));
         binding.btnMyMap.setSelected("me".equals(mode));
         binding.btnMap.setSelected(!"me".equals(mode));
-        // 거리순/인기순 토글은 주변 모드에서만
-        //binding.btnSort.setVisibility("nearby".equals(mode) ? android.view.View.VISIBLE : android.view.View.GONE);
     }
 
     // ───────────────────────── 위치 ─────────────────────────
