@@ -34,10 +34,45 @@ public final class GuestbookMarkerRenderer {
         return render(context, text, 0xFFFFFDF4, color, 0xFF5E4128);
     }
 
-    /** 그 자리에서 열리는 편지 말풍선 (연핑크) */
-    public static Bitmap createLetterBitmap(Context context, String text) {
-        return render(context, text == null || text.trim().isEmpty() ? "편지" : text.trim(),
-                LETTER_FILL, LETTER_BORDER, LETTER_TEXT);
+    /**
+     * 그 자리에서 열리는 편지 마커: 연핑크 동그라미 안에 💌 (말풍선 대신).
+     * 다른 fp 버튼처럼 아래쪽에 살짝 두께감. 중심이 실제 좌표 → anchor (0.5, 0.5)
+     */
+    public static Bitmap createLetterBitmap(Context context, String ignored) {
+        float d = context.getResources().getDisplayMetrics().density;
+        float size = 44 * d;          // 동그라미 지름
+        float depth = 3 * d;          // 아래 두께감
+        float stroke = 3 * d;
+        float margin = 3 * d;         // 누르기 쉽게 투명 여백
+        int w = (int) Math.ceil(size + 2 * margin);
+        int h = (int) Math.ceil(size + depth + 2 * margin);
+
+        Bitmap bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        float cx = w / 2f;
+        float cy = margin + size / 2f;
+        float r = size / 2f - stroke / 2f;
+
+        Paint shadow = new Paint(Paint.ANTI_ALIAS_FLAG);
+        shadow.setColor(0xFFF4C3CF);
+        canvas.drawCircle(cx, cy + depth, r + stroke / 2f, shadow);
+
+        Paint fill = new Paint(Paint.ANTI_ALIAS_FLAG);
+        fill.setColor(LETTER_FILL);
+        canvas.drawCircle(cx, cy, r, fill);
+
+        Paint line = new Paint(Paint.ANTI_ALIAS_FLAG);
+        line.setStyle(Paint.Style.STROKE);
+        line.setStrokeWidth(stroke);
+        line.setColor(LETTER_BORDER);
+        canvas.drawCircle(cx, cy, r, line);
+
+        TextPaint tp = new TextPaint(Paint.ANTI_ALIAS_FLAG);
+        tp.setTextSize(22 * d);
+        tp.setTextAlign(Paint.Align.CENTER);
+        Paint.FontMetrics fm = tp.getFontMetrics();
+        canvas.drawText("💌", cx, cy - (fm.ascent + fm.descent) / 2f, tp);
+        return bitmap;
     }
 
     private static Bitmap render(Context context, String text, int fillColor, int color, int textColor) {
