@@ -65,6 +65,14 @@ public interface ApiService {
             @Query("ageGroup") String ageGroup,
             @Query("sort") String sort);
 
+    /** 게시판: 클러스터에 묶인 방명록 목록. ids = clusterIds 콤마 구분 */
+    @GET("api/maps/guestbooks/cluster")
+    Call<List<Guestbook>> getClusterGuestbooks(
+            @Query("ids") String ids,
+            @Query("latitude") Double latitude,
+            @Query("longitude") Double longitude,
+            @Query("sort") String sort);
+
     @GET("api/maps/search")
     Call<ApiResponse<List>> searchPlaces(
             @Query("keyword") String keyword);

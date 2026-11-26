@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 게시판 엽서 카드: 기존 bg_fp_card 처럼 아래쪽에 두께감 -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#EAD9AE" />
+            <corners android:radius="20dp" />
+        </shape>
+    </item>
+    <item android:bottom="4dp">
+        <shape android:shape="rectangle">
+            <solid android:color="#FFF6DC" />
+            <corners android:radius="20dp" />
+        </shape>
+    </item>
+</layer-list>

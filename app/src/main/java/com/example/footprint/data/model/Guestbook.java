@@ -22,6 +22,8 @@ public class Guestbook {
     private Integer likeCount;
     private Boolean isClustered;
     private Integer clusterCount;  // 대표 글 포함 개수
+    private java.util.List<Long> clusterIds; // 묶인 글 id (대표 포함). 게시판 목록 조회용
+    private String nickname;       // 게시판 목록 조회에서만 옴
 
     private boolean representative;
 
@@ -43,6 +45,9 @@ public class Guestbook {
     public int getLikeCount() { return likeCount != null ? likeCount : 0; }
     public boolean isClustered() { return Boolean.TRUE.equals(isClustered); }
     public int getClusterCount() { return clusterCount != null ? clusterCount : 1; }
+    public java.util.List<Long> getClusterIds() { return clusterIds; }
+    public boolean hasClusterIds() { return clusterIds != null && clusterIds.size() > 1; }
+    public String getNickname() { return nickname; }
     public boolean isRepresentative() { return representative || getLikeCount() >= 5; }
 
     // 말풍선 텍스트. 클러스터면 "대표 글 외 N개"

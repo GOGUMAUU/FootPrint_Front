@@ -77,6 +77,7 @@ public class MainActivity extends AppCompatActivity {
         // ── 공통 지도 컴포넌트 ──
         map = new FootprintMapController(this, binding.mapView);
         map.setOnGuestbookClickListener(this::openGuestbook);
+        map.setOnClusterClickListener(this::openBoard);
         map.setOnCameraIdleListener((center, zoom) -> scheduleReloadForCamera());
         map.start(() -> switchMode("nearby"));
 
@@ -353,7 +354,15 @@ public class MainActivity extends AppCompatActivity {
         map.showGuestbooks(list);
     }
 
-    /** 클러스터 클릭(줌인)은 지도 컴포넌트가 처리하고, 여기로는 일반 방명록만 들어옴 */
+    /** 확대된 상태에서 묶인 말풍선을 누르면: 그 자리의 방명록을 게시판(바텀시트)으로 보여줌 */
+    private void openBoard(Guestbook cluster) {
+        com.example.footprint.ui.GuestbookBoardSheet.show(getSupportFragmentManager(), cluster.getClusterIds(),
+                currentLocation == null ? null : currentLocation.getLatitude(),
+                currentLocation == null ? null : currentLocation.getLongitude(),
+                cluster.getLocationName(), "nearby".equals(mode));
+    }
+
+    /** 멀리서 본 클러스터 클릭(줌인)은 지도 컴포넌트가 처리하고, 여기로는 일반 방명록만 들어옴 */
     private void openGuestbook(Guestbook g) {
         if ("nearby".equals(mode) && !g.isAccessible()) {
             String distMsg = g.getDistanceMeter() != null
