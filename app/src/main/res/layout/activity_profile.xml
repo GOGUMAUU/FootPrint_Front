@@ -145,6 +145,17 @@
                     style="@style/ProfileMenuRow"
                     android:text="@string/activity_profile_blocks_text"
                     android:drawableStart="@drawable/ic_profile_person" />
+                <View
+                    android:id="@+id/mapBubblePickDivider"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#EAD9A8" />
+                <!-- 지도에서 묶인 말풍선의 대표 글 기준 (기기별 설정) -->
+                <TextView
+                    android:id="@+id/mapBubblePick"
+                    style="@style/ProfileMenuRow"
+                    android:text="지도 말풍선에 보일 글"
+                    android:drawableStart="@drawable/ic_profile_pin" />
             </LinearLayout>
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/follow"

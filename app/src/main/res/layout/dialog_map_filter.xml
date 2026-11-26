@@ -21,50 +21,6 @@
         android:textColor="#5C432D"
         android:textSize="19sp"
         android:textStyle="bold" />
-    <!-- 정렬 -->
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="18dp"
-        android:layout_marginBottom="6dp"
-        android:text="@string/dialog_map_filter_text_view_text_2"
-        android:textColor="#5C432D"
-        android:textSize="14sp"
-        android:textStyle="bold" />
-    <com.google.android.material.chip.ChipGroup
-        android:id="@+id/chipGroupSort"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:chipSpacingHorizontal="8dp"
-        app:selectionRequired="true"
-        app:singleSelection="true">
-
-        <com.google.android.material.chip.Chip
-            android:id="@+id/chipSortLatest"
-            style="@style/Widget.MaterialComponents.Chip.Choice"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:checked="true"
-            android:text="@string/dialog_map_filter_chip_sort_latest_text"
-            android:textColor="@color/selector_chip_text"
-            android:textStyle="bold"
-            app:chipBackgroundColor="@color/selector_chip_bg"
-            app:chipCornerRadius="999dp"
-            app:chipStrokeColor="@color/selector_chip_stroke"
-            app:chipStrokeWidth="1.5dp"/>
-        <com.google.android.material.chip.Chip
-            android:id="@+id/chipSortPopular"
-            style="@style/Widget.MaterialComponents.Chip.Choice"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/dialog_map_filter_chip_sort_popular_text"
-            android:textColor="@color/selector_chip_text"
-            android:textStyle="bold"
-            app:chipBackgroundColor="@color/selector_chip_bg"
-            app:chipCornerRadius="999dp"
-            app:chipStrokeColor="@color/selector_chip_stroke"
-            app:chipStrokeWidth="1.5dp"/>
-    </com.google.android.material.chip.ChipGroup>
     <!-- 기간 -->
     <TextView
         android:layout_width="wrap_content"

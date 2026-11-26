@@ -46,7 +46,8 @@ public interface ApiService {
             @Query("latitude") double latitude,
             @Query("longitude") double longitude,
             @Query("zoomLevel") int zoomLevel,
-            @Query("sort") String sort);
+            @Query("pick") String pick,       // 묶음 대표 기준: recommended | popular | latest
+            @Query("period") String period);  // null | 7d | 30d
 
     @POST("api/maps/guestbooks/{guestbookId}/check-distance")
     Call<Void> checkDistance(@Path("guestbookId") String guestbookId,
@@ -63,6 +64,14 @@ public interface ApiService {
             @Query("eastLng") double eastLng,
             @Query("period") String period,
             @Query("ageGroup") String ageGroup,
+            @Query("pick") String pick);      // 묶음 대표 기준: recommended | popular | latest
+
+    /** 게시판: 클러스터에 묶인 방명록 목록. ids = clusterIds 콤마 구분 */
+    @GET("api/maps/guestbooks/cluster")
+    Call<List<Guestbook>> getClusterGuestbooks(
+            @Query("ids") String ids,
+            @Query("latitude") Double latitude,
+            @Query("longitude") Double longitude,
             @Query("sort") String sort);
 
     @GET("api/maps/search")

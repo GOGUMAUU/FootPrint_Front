@@ -53,6 +53,8 @@ public class ProfileMapActivity extends AppCompatActivity {
 
         map = new FootprintMapController(this, binding.profileMapView);
         map.setOnGuestbookClickListener(this::openGuestbook);
+        map.setOnClusterClickListener(cluster -> GuestbookBoardSheet.show(getSupportFragmentManager(),
+                cluster.getClusterIds(), null, null, cluster.getLocationName(), false));
         map.setOnCameraIdleListener((center, zoom) -> scheduleReload());
         map.start(() -> {
             map.resetZoomRange();
@@ -84,7 +86,7 @@ public class ProfileMapActivity extends AppCompatActivity {
                 bounds[3],
                 filterState.getPeriod(),
                 filterState.getAgeGroup(),
-                zoom < AppConfig.ZOOM_DETAIL ? "popular" : "latest"
+                com.example.footprint.util.MapPrefs.pick(this)
         );
 
         boundsCall.enqueue(new Callback<>() {

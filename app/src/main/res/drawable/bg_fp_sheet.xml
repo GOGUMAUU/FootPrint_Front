@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 게시판 바텀시트 배경: 위쪽만 둥근 크림색 카드 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="#FFFDF4" />
+    <stroke android:width="3dp" android:color="#EAD9AE" />
+    <corners android:topLeftRadius="30dp" android:topRightRadius="30dp" />
+</shape>

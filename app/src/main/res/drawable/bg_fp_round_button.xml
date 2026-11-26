@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 동그란 지도 버튼: 크림색 + 베이지 테두리 + 아래 두께감 (bg_fp_card 계열) -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="#E6D5AC" />
+        </shape>
+    </item>
+    <item android:bottom="4dp">
+        <shape android:shape="oval">
+            <solid android:color="#FAF5E4" />
+            <stroke android:width="2dp" android:color="#E6D5AC" />
+        </shape>
+    </item>
+</layer-list>
