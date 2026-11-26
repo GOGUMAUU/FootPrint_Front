@@ -229,6 +229,10 @@ public class MainActivity extends AppCompatActivity implements com.example.footp
     private void updateModeButtons() {
         boolean isMyMap = "me".equals(mode);
 
+        int topVisibility = isMyMap ? android.view.View.GONE : android.view.View.VISIBLE;
+        binding.topModeContainer.setVisibility(topVisibility);
+        binding.btnFilter.setVisibility(topVisibility);
+
         binding.btnNearby.setSelected("nearby".equals(mode));
         binding.btnFollowing.setSelected("following".equals(mode));
         binding.btnMyMap.setSelected(isMyMap);
