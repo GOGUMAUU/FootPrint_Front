@@ -148,7 +148,16 @@
                     android:id="@+id/terms"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:buttonTint="#2F7D46"
                     android:text="@string/activity_auth_terms_text"
+                    android:textColor="#76583D"
+                    android:visibility="gone" />
+                <CheckBox
+                    android:id="@+id/locationTerms"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:buttonTint="#2F7D46"
+                    android:text="[필수] 위치기반서비스 이용약관에 동의해요"
                     android:textColor="#76583D"
                     android:visibility="gone" />
                 <Button
