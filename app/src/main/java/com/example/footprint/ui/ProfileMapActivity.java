@@ -88,7 +88,7 @@ public class ProfileMapActivity extends AppCompatActivity {
                 bounds[3],
                 filterState.getPeriod(),
                 filterState.getAgeGroup(),
-                zoom < AppConfig.ZOOM_DETAIL ? "popular" : "latest"
+                com.example.footprint.util.MapPrefs.pick(this)
         );
 
         boundsCall.enqueue(new Callback<>() {

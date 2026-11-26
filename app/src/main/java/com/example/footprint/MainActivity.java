@@ -60,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
     private Call<List<Guestbook>> boundsCall;
 
     private String mode = "nearby"; // nearby | following | me
-    private String sort = "distance"; // 주변 모드 정렬: distance | popular
+    private String lastPick; // 마지막으로 지도에 적용한 말풍선 대표 기준
 
     private Long selectedFollowingUserId = null;
     private android.widget.Button profileButton;
@@ -129,12 +129,6 @@ public class MainActivity extends AppCompatActivity {
         binding.btnNearby.setOnClickListener(v -> switchMode("nearby"));
         binding.btnFollowing.setOnClickListener(v -> switchMode("following"));
         binding.btnMyMap.setOnClickListener(v -> switchMode("me"));
-        binding.btnSort.setOnClickListener(v -> {
-            sort = "distance".equals(sort) ? "popular" : "distance";
-            binding.btnSort.setText("distance".equals(sort) ? "거리순" : "인기순");
-            map.clearGuestbooks();
-            scheduleReloadForCamera();
-        });
         //binding.btnFilter.setOnClickListener(v -> Toast.makeText(this, "필터 UI: 연령대 · 최근 N일 · 인기/최신", Toast.LENGTH_SHORT).show());
         binding.btnFilter.setOnClickListener(v -> {
             com.example.footprint.ui.FilterBottomSheetDialog dialog =
@@ -199,8 +193,6 @@ public class MainActivity extends AppCompatActivity {
         binding.btnFollowing.setSelected("following".equals(mode));
         binding.btnMyMap.setSelected("me".equals(mode));
         binding.btnMap.setSelected(!"me".equals(mode));
-        // 거리순/인기순 토글은 주변 모드에서만
-        binding.btnSort.setVisibility("nearby".equals(mode) ? android.view.View.VISIBLE : android.view.View.GONE);
     }
 
     // ───────────────────────── 위치 ─────────────────────────
@@ -299,7 +291,8 @@ public class MainActivity extends AppCompatActivity {
                     currentLocation.getLatitude(),
                     currentLocation.getLongitude(),
                     zoom,
-                    sort
+                    com.example.footprint.util.MapPrefs.pick(this),
+                    filterState.getPeriod()
             );
             nearbyCall.enqueue(new Callback<>() {
                 @Override
@@ -330,7 +323,7 @@ public class MainActivity extends AppCompatActivity {
                     bounds[3],
                     filterState.getPeriod(),
                     filterState.getAgeGroup(),
-                    zoom < AppConfig.ZOOM_DETAIL ? "popular" : "latest"
+                    com.example.footprint.util.MapPrefs.pick(this)
             );
             boundsCall.enqueue(new Callback<>() {
                 @Override
@@ -397,6 +390,13 @@ public class MainActivity extends AppCompatActivity {
         map.resume();
         if (map.isReady()) startLocationUpdates();
         refreshFollowDot();
+        // 마이페이지에서 '말풍선에 보일 글' 설정을 바꾸고 돌아왔으면 지도 다시 불러오기
+        String pick = com.example.footprint.util.MapPrefs.pick(this);
+        if (lastPick != null && !lastPick.equals(pick) && map.isReady()) {
+            map.clearGuestbooks();
+            scheduleReloadForCamera();
+        }
+        lastPick = pick;
     }
 
     private void refreshFollowDot() {

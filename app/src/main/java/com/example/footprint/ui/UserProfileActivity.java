@@ -33,7 +33,25 @@ public final class UserProfileActivity extends AppCompatActivity {
             });
         }
         binding.settings.setVisibility(own ? View.VISIBLE : View.GONE);
-        for (View view : new View[]{binding.requests,binding.blocks,binding.editActions,binding.logout,binding.bottomNav}) view.setVisibility(own ? View.VISIBLE : View.GONE);
+        for (View view : new View[]{binding.requests,binding.blocks,binding.mapBubblePickDivider,binding.mapBubblePick,binding.editActions,binding.logout,binding.bottomNav}) view.setVisibility(own ? View.VISIBLE : View.GONE);
+        renderMapBubblePick(binding.mapBubblePick);
+        binding.mapBubblePick.setOnClickListener(v -> {
+            String current = com.example.footprint.util.MapPrefs.pick(this);
+            int checked = java.util.Arrays.asList(com.example.footprint.util.MapPrefs.PICK_VALUES).indexOf(current);
+            String[] items = {
+                    "추천 · 열 수 있는 글, 친구 글, 인기 글 순으로 골라요",
+                    "인기 글 · 좋아요가 많은 글",
+                    "최신 글 · 가장 최근에 남긴 글"};
+            new androidx.appcompat.app.AlertDialog.Builder(this)
+                    .setTitle("지도 말풍선에 보일 글")
+                    .setSingleChoiceItems(items, Math.max(0, checked), (d, which) -> {
+                        com.example.footprint.util.MapPrefs.setPick(this, com.example.footprint.util.MapPrefs.PICK_VALUES[which]);
+                        renderMapBubblePick(binding.mapBubblePick);
+                        d.dismiss();
+                    })
+                    .setNegativeButton("취소", null)
+                    .show();
+        });
         binding.editProfile.setOnClickListener(v -> binding.editSection.setVisibility(binding.editSection.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE));
         binding.logout.setOnClickListener(v -> com.example.footprint.security.Session.logout(this));
         binding.privateAccount.setOnCheckedChangeListener((button, checked) -> {
@@ -118,4 +136,9 @@ public final class UserProfileActivity extends AppCompatActivity {
         if (model.profile.getValue() == null) model.load(id);
     }
     @Override protected void onResume() { super.onResume(); if (model != null) model.load(getIntent().getLongExtra("userId",0)); }
+
+    /** "지도 말풍선에 보일 글 · 추천" */
+    private void renderMapBubblePick(android.widget.TextView row) {
+        row.setText("지도 말풍선에 보일 글 · " + com.example.footprint.util.MapPrefs.pickLabel(this));
+    }
 }

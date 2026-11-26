@@ -86,6 +86,9 @@ public class GuestbookBoardSheet extends BottomSheetDialogFragment {
         idsCsv = sb.toString();
         if (a.containsKey(ARG_LAT)) { lat = a.getDouble(ARG_LAT); lng = a.getDouble(ARG_LNG); }
         strict = a.getBoolean(ARG_STRICT);
+        // 마지막으로 고른 정렬을 기억 (위치가 없으면 가까운순은 못 쓰니 최신순)
+        sort = com.example.footprint.util.MapPrefs.boardSort(requireContext());
+        if ("distance".equals(sort) && lat == null) sort = "latest";
         String title = a.getString(ARG_TITLE);
         if (title != null && !title.trim().isEmpty()) ((TextView) v.findViewById(R.id.tvBoardTitle)).setText(title);
 
@@ -140,6 +143,7 @@ public class GuestbookBoardSheet extends BottomSheetDialogFragment {
             chip.setOnClickListener(x -> {
                 if (opt[0].equals(sort)) return;
                 sort = opt[0];
+                com.example.footprint.util.MapPrefs.setBoardSort(requireContext(), sort);
                 buildSortBar();
                 load();
             });
