@@ -144,6 +144,27 @@ public class GuestbookDetailDialog extends DialogFragment {
         binding.ownerRow.setVisibility(d.mine ? View.VISIBLE : View.GONE);
         binding.btnEdit.setTag(d);
         renderLike();
+        if (d.letter) styleAsLetter(d);
+    }
+
+    /** 💌 그 자리에서 열리는 편지: 같은 카드 구조에 연핑크 편지지 느낌 */
+    private void styleAsLetter(GuestbookDetail d) {
+        binding.getRoot().setBackgroundResource(R.drawable.bg_fp_card_letter);
+        binding.tvTitle.setTextColor(0xFFC0607A);
+        String from = d.nickname == null || d.nickname.isEmpty() ? "친구" : d.nickname;
+        String to = d.recipientNickname == null || d.recipientNickname.isEmpty() ? "친구" : d.recipientNickname;
+        binding.tvTitle.setText(d.mine ? "💌 " + to + "에게 보낸 편지" : "💌 " + from + "의 편지");
+        binding.tvContent.setBackgroundResource(R.drawable.bg_fp_letter_paper);
+        binding.tvContent.setTextColor(0xFF6B3A48);
+        binding.tvChipVis.setBackgroundResource(R.drawable.bg_fp_chip_letter);
+        binding.tvChipVis.setTextColor(0xFFB5546C);
+        if (d.mine) {
+            binding.tvChipVis.setText(d.letterOpenedAt == null ? "아직 안 열어봤어요" : to + "님이 열어봤어요");
+        } else {
+            binding.tvChipVis.setText("나에게 온 편지");
+        }
+        // 편지는 받는 사람·공개 범위를 바꿀 수 없어서 수정 대신 삭제만
+        binding.btnEdit.setVisibility(View.GONE);
     }
 
     private void showError(String message) {

@@ -18,4 +18,8 @@ public class GuestbookDetail {
     public long likeCount;
     public boolean liked;
     public boolean mine;
+    public boolean letter;            // 그 자리에서 열리는 편지
+    public Long recipientId;
+    public String recipientNickname;
+    public String letterOpenedAt;
 }

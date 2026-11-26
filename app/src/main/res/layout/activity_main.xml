@@ -163,12 +163,45 @@
             android:textStyle="bold" />
     </LinearLayout>
 
+    <!-- 💌 편지함 (내 위치 버튼 위). 안 읽은 편지가 있으면 핑크 점 -->
+    <FrameLayout
+        android:id="@+id/letterButtonWrap"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:layout_marginEnd="18dp"
+        android:layout_marginBottom="8dp"
+        app:layout_constraintBottom_toTopOf="@id/btnMyLocation"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <ImageButton
+            android:id="@+id/btnLetters"
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            android:layout_gravity="bottom|start"
+            android:background="@drawable/bg_fp_round_button_pink"
+            android:contentDescription="편지함"
+            android:elevation="3dp"
+            android:paddingBottom="4dp"
+            android:src="@drawable/ic_fp_envelope"
+            android:stateListAnimator="@null" />
+
+        <View
+            android:id="@+id/letterDot"
+            android:layout_width="14dp"
+            android:layout_height="14dp"
+            android:layout_gravity="top|end"
+            android:background="@drawable/bg_fp_letter_dot"
+            android:elevation="4dp"
+            android:visibility="gone" />
+    </FrameLayout>
+
     <!-- 내 위치로 가기 (방명록 남기기 버튼 위) -->
     <ImageButton
         android:id="@+id/btnMyLocation"
         android:layout_width="52dp"
         android:layout_height="52dp"
         android:layout_marginEnd="20dp"
+        android:layout_marginBottom="2dp"
         android:background="@drawable/bg_fp_round_button"
         android:contentDescription="내 위치로 가기"
         android:elevation="3dp"

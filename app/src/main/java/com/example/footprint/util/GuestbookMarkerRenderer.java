@@ -22,13 +22,27 @@ public final class GuestbookMarkerRenderer {
             0xFFF5A04A, 0xFFF2C94C, 0xFF6FBF73, 0xFF5AB4E8, 0xFFA98BE0
     };
 
-    public static Bitmap createMarkerBitmap(Context context, String shortText, boolean representative) {
-        float d = context.getResources().getDisplayMetrics().density;
-        float maxW = context.getResources().getDisplayMetrics().widthPixels / 3f; // 폰 가로의 1/3
+    // 편지 말풍선: 연핑크
+    public static final int LETTER_FILL = 0xFFFFF0F3;
+    public static final int LETTER_BORDER = 0xFFF4A6B8;
+    public static final int LETTER_TEXT = 0xFF8A4B5C;
 
+    public static Bitmap createMarkerBitmap(Context context, String shortText, boolean representative) {
         String text = (shortText == null || shortText.trim().isEmpty()) ? "방명록" : shortText.trim();
         // 같은 글은 항상 같은 색 (지도를 움직여도 색이 안 바뀜)
         int color = BORDER_COLORS[(text.hashCode() & 0x7fffffff) % BORDER_COLORS.length];
+        return render(context, text, 0xFFFFFDF4, color, 0xFF5E4128);
+    }
+
+    /** 그 자리에서 열리는 편지 말풍선 (연핑크) */
+    public static Bitmap createLetterBitmap(Context context, String text) {
+        return render(context, text == null || text.trim().isEmpty() ? "편지" : text.trim(),
+                LETTER_FILL, LETTER_BORDER, LETTER_TEXT);
+    }
+
+    private static Bitmap render(Context context, String text, int fillColor, int color, int textColor) {
+        float d = context.getResources().getDisplayMetrics().density;
+        float maxW = context.getResources().getDisplayMetrics().widthPixels / 3f; // 폰 가로의 1/3
 
         float stroke = 3 * d;
         float padH = 12 * d;
@@ -38,7 +52,7 @@ public final class GuestbookMarkerRenderer {
         float margin = 4 * d; // 좌우·위 투명 여백 (누르기 쉽게)
 
         TextPaint tp = new TextPaint(Paint.ANTI_ALIAS_FLAG);
-        tp.setColor(0xFF5E4128);
+        tp.setColor(textColor);
         tp.setTextSize(14 * d);
         try {
             Typeface tf = ResourcesCompat.getFont(context, R.font.jua);
@@ -60,7 +74,7 @@ public final class GuestbookMarkerRenderer {
         Bitmap bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
         Paint fill = new Paint(Paint.ANTI_ALIAS_FLAG);
-        fill.setColor(0xFFFFFDF4);
+        fill.setColor(fillColor);
         Paint line = new Paint(Paint.ANTI_ALIAS_FLAG);
         line.setStyle(Paint.Style.STROKE);
         line.setStrokeWidth(stroke);

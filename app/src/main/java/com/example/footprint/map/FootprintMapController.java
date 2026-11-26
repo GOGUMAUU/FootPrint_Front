@@ -295,8 +295,9 @@ public class FootprintMapController {
 
         for (Guestbook g : list) {
             String labelId = "guestbook-" + g.getId();
-            Bitmap bitmap = GuestbookMarkerRenderer.createMarkerBitmap(
-                    context, g.getShortText(), g.isRepresentative() || g.isClustered());
+            Bitmap bitmap = g.isLetter()
+                    ? GuestbookMarkerRenderer.createLetterBitmap(context, g.getShortText())
+                    : GuestbookMarkerRenderer.createMarkerBitmap(context, g.getShortText(), g.isRepresentative() || g.isClustered());
             Label label = guestbookLayer.addLabel(
                     LabelOptions.from(labelId, LatLng.from(g.getLatitude(), g.getLongitude()))
                             // 말풍선 꼬리 끝(아래 가운데)이 실제 좌표를 가리키도록

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 편지 카드: bg_fp_card_detail 의 연핑크 버전 -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#F4C3CF" />
+            <corners android:radius="34dp" />
+        </shape>
+    </item>
+    <item android:bottom="8dp">
+        <shape android:shape="rectangle">
+            <solid android:color="#FFF8FA" />
+            <stroke android:width="3dp" android:color="#F4C3CF" />
+            <corners android:radius="32dp" />
+        </shape>
+    </item>
+</layer-list>

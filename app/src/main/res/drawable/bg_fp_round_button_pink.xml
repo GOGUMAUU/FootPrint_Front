@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 편지함 버튼: bg_fp_round_button 의 연핑크 버전 -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="#F4C3CF" />
+        </shape>
+    </item>
+    <item android:bottom="4dp">
+        <shape android:shape="oval">
+            <solid android:color="#FFF0F3" />
+            <stroke android:width="2dp" android:color="#F4C3CF" />
+        </shape>
+    </item>
+</layer-list>

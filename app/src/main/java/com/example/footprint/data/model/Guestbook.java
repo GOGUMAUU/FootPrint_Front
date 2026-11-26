@@ -23,7 +23,8 @@ public class Guestbook {
     private Boolean isClustered;
     private Integer clusterCount;  // 대표 글 포함 개수
     private java.util.List<Long> clusterIds; // 묶인 글 id (대표 포함). 게시판 목록 조회용
-    private String nickname;       // 게시판 목록 조회에서만 옴
+    private String nickname;       // 게시판 목록 조회 / 편지일 때 옴
+    private Boolean letter;        // 그 자리에서 열리는 편지
 
     private boolean representative;
 
@@ -48,10 +49,12 @@ public class Guestbook {
     public java.util.List<Long> getClusterIds() { return clusterIds; }
     public boolean hasClusterIds() { return clusterIds != null && clusterIds.size() > 1; }
     public String getNickname() { return nickname; }
+    public boolean isLetter() { return Boolean.TRUE.equals(letter); }
     public boolean isRepresentative() { return representative || getLikeCount() >= 5; }
 
     // 말풍선 텍스트. 클러스터면 "대표 글 외 N개"
     public String getShortText() {
+        if (isLetter()) return "💌 " + (nickname == null || nickname.isEmpty() ? "편지" : nickname + "의 편지");
         String base;
         if (title != null && !title.isEmpty()) base = title;
         else if (content != null && !content.isEmpty()) base = content;

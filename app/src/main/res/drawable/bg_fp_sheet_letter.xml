@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 편지함 바텀시트: bg_fp_sheet 의 연핑크 버전 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="#FFF8FA" />
+    <stroke android:width="3dp" android:color="#F4C3CF" />
+    <corners android:topLeftRadius="30dp" android:topRightRadius="30dp" />
+</shape>

@@ -41,7 +41,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements com.example.footprint.ui.LetterBoxSheet.OnClosedListener {
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1000;
 
     private ActivityMainBinding binding;
@@ -127,6 +127,9 @@ public class MainActivity extends AppCompatActivity {
          */
         binding.btnChallenges.setOnClickListener(v -> com.example.footprint.ui.LocationConsent.request(this, () -> startActivity(new Intent(this, ChallengeActivity.class))));
         binding.btnMyLocation.setOnClickListener(v -> goToMyLocation());
+        binding.btnLetters.setOnClickListener(v -> com.example.footprint.ui.LetterBoxSheet.show(getSupportFragmentManager(),
+                currentLocation == null ? null : currentLocation.getLatitude(),
+                currentLocation == null ? null : currentLocation.getLongitude()));
         binding.btnNearby.setOnClickListener(v -> switchMode("nearby"));
         binding.btnFollowing.setOnClickListener(v -> switchMode("following"));
         binding.btnMyMap.setOnClickListener(v -> switchMode("me"));
@@ -379,7 +382,7 @@ public class MainActivity extends AppCompatActivity {
             String distMsg = g.getDistanceMeter() != null
                     ? String.format(Locale.getDefault(), " (현재 거리: %.0fm)", g.getDistanceMeter())
                     : "";
-            Toast.makeText(this, "직접 가까이 이동해야 열람할 수 있어요." + distMsg, Toast.LENGTH_LONG).show();
+            Toast.makeText(this, (g.isLetter() ? "편지는 그 자리에 가야 열 수 있어요." : "직접 가까이 이동해야 열람할 수 있어요.") + distMsg, Toast.LENGTH_LONG).show();
             return;
         }
         com.example.footprint.ui.GuestbookDetailDialog.open(getSupportFragmentManager(), g.getId(),
@@ -408,6 +411,7 @@ public class MainActivity extends AppCompatActivity {
         map.resume();
         if (map.isReady()) startLocationUpdates();
         refreshFollowDot();
+        refreshLetterDot();
         // 마이페이지에서 '말풍선에 보일 글' 설정을 바꾸고 돌아왔으면 지도 다시 불러오기
         String pick = com.example.footprint.util.MapPrefs.pick(this);
         if (lastPick != null && !lastPick.equals(pick) && map.isReady()) {
@@ -415,6 +419,22 @@ public class MainActivity extends AppCompatActivity {
             scheduleReloadForCamera();
         }
         lastPick = pick;
+    }
+
+    @Override public void onLetterBoxClosed() { refreshLetterDot(); }
+
+    /** 아직 안 열어 본 받은 편지가 있으면 편지함 버튼에 핑크 점 */
+    private void refreshLetterDot() {
+        if (!com.example.footprint.security.Session.signedIn(this)) return;
+        ApiClient.get().getLetterUnreadCount().enqueue(new Callback<com.example.footprint.data.model.LetterSummary.UnreadCount>() {
+            @Override public void onResponse(@NonNull Call<com.example.footprint.data.model.LetterSummary.UnreadCount> c,
+                                             @NonNull Response<com.example.footprint.data.model.LetterSummary.UnreadCount> r) {
+                if (isFinishing() || isDestroyed()) return;
+                boolean has = r.isSuccessful() && r.body() != null && r.body().count > 0;
+                binding.letterDot.setVisibility(has ? android.view.View.VISIBLE : android.view.View.GONE);
+            }
+            @Override public void onFailure(@NonNull Call<com.example.footprint.data.model.LetterSummary.UnreadCount> c, @NonNull Throwable t) {}
+        });
     }
 
     private void refreshFollowDot() {

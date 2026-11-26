@@ -150,6 +150,8 @@ public class CreateGuestbookActivity extends AppCompatActivity {
         binding.btnTakePhoto.setOnClickListener(v -> openCamera());
         renderPhotos();
         binding.btnSave.setOnClickListener(v -> save());
+        binding.letterToggle.setOnClickListener(v -> setLetterMode(!letterMode));
+        binding.tvLetterRecipientState.setOnClickListener(v -> { if (letterMode && !recipientsLoaded) loadLetterRecipients(); });
         binding.btnBack.setOnClickListener(v -> finish());
         binding.etContent.addTextChangedListener(new android.text.TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int a, int b, int c) {}
@@ -223,6 +225,7 @@ public class CreateGuestbookActivity extends AppCompatActivity {
         if (selected == null) { Toast.makeText(this, "지도에서 장소를 선택하세요.", Toast.LENGTH_SHORT).show(); return; }
         if (photos.isEmpty()) { Toast.makeText(this, "사진을 선택하세요.", Toast.LENGTH_SHORT).show(); return; }
         if (text.isEmpty()) { Toast.makeText(this, "짧은 글을 입력하세요.", Toast.LENGTH_SHORT).show(); return; }
+        if (letterMode && letterRecipientId == null) { Toast.makeText(this, "편지를 받을 친구를 골라 주세요.", Toast.LENGTH_SHORT).show(); return; }
         submit(text);
     }
 
@@ -303,8 +306,11 @@ public class CreateGuestbookActivity extends AppCompatActivity {
             final double lng = selected.getLongitude();
             final double curLat = loc.getLatitude();
             final double curLng = loc.getLongitude();
-            final String visibility = binding.rbPrivate.isChecked() ? "PRIVATE"
+            final String visibility = letterMode ? "LETTER"
+                    : binding.rbPrivate.isChecked() ? "PRIVATE"
                     : (binding.rbFollowers.isChecked() ? "FOLLOWERS_ONLY" : "PUBLIC");
+            final Long recipientId = letterMode ? letterRecipientId : null;
+            final String recipientName = letterRecipientName;
             final String locName = selectedName == null ? null
                     : (selectedName.length() > 100 ? selectedName.substring(0, 100) : selectedName);
 
@@ -320,6 +326,7 @@ public class CreateGuestbookActivity extends AppCompatActivity {
                     body.put("currentLongitude", curLng);
                     body.put("content", text);
                     body.put("visibility", visibility);
+                    if (recipientId != null) body.put("recipientId", recipientId);
                     body.put("photoPaths", paths);
                     if (locName != null) body.put("locationName", locName);
 
@@ -327,7 +334,9 @@ public class CreateGuestbookActivity extends AppCompatActivity {
                     if (!res.isSuccessful()) throw new IllegalStateException(errorMessage(res));
 
                     runOnUiThread(() -> {
-                        Toast.makeText(this, "방명록을 남겼어요!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, recipientId != null
+                                ? "편지를 남겼어요! " + recipientName + "님이 이 자리에 오면 열어 볼 수 있어요."
+                                : "방명록을 남겼어요!", Toast.LENGTH_LONG).show();
                         setResult(RESULT_OK);
                         finish();
                     });
@@ -369,6 +378,98 @@ public class CreateGuestbookActivity extends AppCompatActivity {
         } catch (Exception ignored) {
         }
         return "서버 오류가 났어요. (코드 " + res.code() + ")";
+    }
+
+    // ───────────────────────── 💌 편지 ─────────────────────────
+
+    private boolean letterMode;
+    private boolean recipientsLoaded;
+    @androidx.annotation.Nullable private Long letterRecipientId;
+    @androidx.annotation.Nullable private String letterRecipientName;
+
+    private void setLetterMode(boolean on) {
+        letterMode = on;
+        binding.letterToggle.setBackgroundResource(on ? R.drawable.bg_fp_letter_card_on : R.drawable.bg_fp_letter_card);
+        binding.tvLetterToggleTitle.setText(on ? "💌 친구에게 편지로 남기기  ✓" : "💌 친구에게 편지로 남기기");
+        // 편지는 공개 범위가 '받는 친구만'으로 정해지므로 공개 범위 선택은 흐리게
+        binding.rgVisibility.setAlpha(on ? 0.35f : 1f);
+        for (int i = 0; i < binding.rgVisibility.getChildCount(); i++) binding.rgVisibility.getChildAt(i).setEnabled(!on);
+        binding.letterRecipientScroll.setVisibility(on ? android.view.View.VISIBLE : android.view.View.GONE);
+        binding.tvLetterRecipientState.setVisibility(on && !recipientsLoaded ? android.view.View.VISIBLE : android.view.View.GONE);
+        binding.btnSave.setBackgroundResource(on ? R.drawable.bg_fp_btn_pink : R.drawable.bg_fp_btn_coral);
+        binding.btnSave.setText(on ? "편지 남기기" : "방명록 저장");
+        binding.btnSave.setTextColor(on ? 0xFF5A2433 : 0xFF4A2A1A);
+        if (on && !recipientsLoaded) loadLetterRecipients();
+    }
+
+    /** 받는 사람 후보 = 내가 팔로우 중인 친구 */
+    private void loadLetterRecipients() {
+        binding.tvLetterRecipientState.setText("친구 목록을 불러오는 중이에요…");
+        binding.tvLetterRecipientState.setVisibility(android.view.View.VISIBLE);
+        ApiClient.get().getMyProfile().enqueue(new retrofit2.Callback<com.example.footprint.data.model.UserSummary>() {
+            @Override public void onResponse(@androidx.annotation.NonNull retrofit2.Call<com.example.footprint.data.model.UserSummary> c,
+                                             @androidx.annotation.NonNull Response<com.example.footprint.data.model.UserSummary> r) {
+                if (isFinishing() || isDestroyed()) return;
+                if (!r.isSuccessful() || r.body() == null || r.body().userId == null) { recipientsFailed(); return; }
+                ApiClient.get().getUserFollowing(r.body().userId).enqueue(new retrofit2.Callback<com.example.footprint.data.model.PageResponse<com.example.footprint.data.model.UserSummary>>() {
+                    @Override public void onResponse(@androidx.annotation.NonNull retrofit2.Call<com.example.footprint.data.model.PageResponse<com.example.footprint.data.model.UserSummary>> c2,
+                                                     @androidx.annotation.NonNull Response<com.example.footprint.data.model.PageResponse<com.example.footprint.data.model.UserSummary>> r2) {
+                        if (isFinishing() || isDestroyed()) return;
+                        if (!r2.isSuccessful() || r2.body() == null) { recipientsFailed(); return; }
+                        renderLetterRecipients(r2.body().content);
+                    }
+                    @Override public void onFailure(@androidx.annotation.NonNull retrofit2.Call<com.example.footprint.data.model.PageResponse<com.example.footprint.data.model.UserSummary>> c2, @androidx.annotation.NonNull Throwable t) { recipientsFailed(); }
+                });
+            }
+            @Override public void onFailure(@androidx.annotation.NonNull retrofit2.Call<com.example.footprint.data.model.UserSummary> c, @androidx.annotation.NonNull Throwable t) { recipientsFailed(); }
+        });
+    }
+
+    private void recipientsFailed() {
+        if (isFinishing() || isDestroyed()) return;
+        binding.tvLetterRecipientState.setText("친구 목록을 불러오지 못했어요. 다시 눌러 주세요.");
+        binding.tvLetterRecipientState.setVisibility(android.view.View.VISIBLE);
+    }
+
+    private void renderLetterRecipients(@androidx.annotation.Nullable List<com.example.footprint.data.model.UserSummary> users) {
+        recipientsLoaded = true;
+        binding.letterRecipients.removeAllViews();
+        if (users == null || users.isEmpty()) {
+            binding.tvLetterRecipientState.setText("팔로우 중인 친구에게만 편지를 보낼 수 있어요. 먼저 친구를 팔로우해 주세요.");
+            binding.tvLetterRecipientState.setVisibility(android.view.View.VISIBLE);
+            return;
+        }
+        binding.tvLetterRecipientState.setVisibility(android.view.View.GONE);
+        float d = getResources().getDisplayMetrics().density;
+        for (com.example.footprint.data.model.UserSummary u : users) {
+            if (u.userId == null) continue;
+            android.widget.TextView chip = new android.widget.TextView(this);
+            chip.setText(u.nickname == null ? "친구" : u.nickname);
+            chip.setTextSize(14);
+            chip.setTypeface(androidx.core.content.res.ResourcesCompat.getFont(this, R.font.jua));
+            chip.setPadding((int) (14 * d), (int) (6 * d), (int) (14 * d), (int) (6 * d));
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+            lp.setMarginEnd((int) (6 * d));
+            chip.setLayoutParams(lp);
+            chip.setTag(u);
+            chip.setOnClickListener(v -> {
+                letterRecipientId = u.userId;
+                letterRecipientName = u.nickname;
+                styleRecipientChips();
+            });
+            binding.letterRecipients.addView(chip);
+        }
+        styleRecipientChips();
+    }
+
+    private void styleRecipientChips() {
+        for (int i = 0; i < binding.letterRecipients.getChildCount(); i++) {
+            android.widget.TextView chip = (android.widget.TextView) binding.letterRecipients.getChildAt(i);
+            com.example.footprint.data.model.UserSummary u = (com.example.footprint.data.model.UserSummary) chip.getTag();
+            boolean on = u.userId.equals(letterRecipientId);
+            chip.setBackgroundResource(on ? R.drawable.bg_fp_letter_chip_on : R.drawable.bg_fp_letter_chip);
+            chip.setTextColor(on ? 0xFFFFFFFF : 0xFF8A4B5C);
+        }
     }
 
     private void setSaving(boolean s) {
