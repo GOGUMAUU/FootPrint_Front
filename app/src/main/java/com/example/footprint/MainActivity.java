@@ -126,6 +126,7 @@ public class MainActivity extends AppCompatActivity {
         });
          */
         binding.btnChallenges.setOnClickListener(v -> com.example.footprint.ui.LocationConsent.request(this, () -> startActivity(new Intent(this, ChallengeActivity.class))));
+        binding.btnMyLocation.setOnClickListener(v -> goToMyLocation());
         binding.btnNearby.setOnClickListener(v -> switchMode("nearby"));
         binding.btnFollowing.setOnClickListener(v -> switchMode("following"));
         binding.btnMyMap.setOnClickListener(v -> switchMode("me"));
@@ -172,6 +173,23 @@ public class MainActivity extends AppCompatActivity {
             map.moveCamera(36.35, 127.8, (int) Math.round(AppConfig.ZOOM_COUNTRY));
         }
         scheduleReloadForCamera();
+    }
+
+    /** 내 위치로 가기: 주변 모드는 기본 줌, 그 외에는 동네가 보일 만큼은 확대해서 이동 */
+    private void goToMyLocation() {
+        if (!map.isReady()) return;
+        if (currentLocation == null) {
+            Toast.makeText(this, "내 위치를 찾는 중이에요. 잠시 후 다시 눌러 주세요.", Toast.LENGTH_SHORT).show();
+            ensureLocationPermissionAndLoad();
+            return;
+        }
+        double lat = currentLocation.getLatitude(), lng = currentLocation.getLongitude();
+        int zoom = "nearby".equals(mode)
+                ? AppConfig.NEARBY_DEFAULT_ZOOM
+                : Math.max(map.getZoomLevel(), (int) Math.round(AppConfig.ZOOM_DETAIL));
+        if ("nearby".equals(mode)) map.setRadiusLimit(lat, lng, AppConfig.NEARBY_MAX_RADIUS_METERS);
+        map.moveCamera(lat, lng, zoom);
+        scheduleReloadForCamera(); // moveCamera 는 idle 재조회를 막으므로 직접 다시 불러옴
     }
 
     /** 모드별 줌 범위 + 반경 제한 */
