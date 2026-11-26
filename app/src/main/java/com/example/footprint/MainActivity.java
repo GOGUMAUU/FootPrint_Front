@@ -61,6 +61,9 @@ public class MainActivity extends AppCompatActivity implements com.example.footp
 
     private String mode = "nearby"; // nearby | following | me
     private String lastPick; // 마지막으로 지도에 적용한 말풍선 대표 기준
+    /** 주변 모드에서 카메라가 내 위치를 따라갈지. 사용자가 지도를 다른 곳으로 옮기면 false, 내 위치 버튼을 누르면 true */
+    private boolean followMe = true;
+    private boolean resumedOnce;
 
     private Long selectedFollowingUserId = null;
     private android.widget.Button profileButton;
@@ -78,7 +81,17 @@ public class MainActivity extends AppCompatActivity implements com.example.footp
         map = new FootprintMapController(this, binding.mapView);
         map.setOnGuestbookClickListener(this::openGuestbook);
         map.setOnClusterClickListener(this::openBoard);
-        map.setOnCameraIdleListener((center, zoom) -> scheduleReloadForCamera());
+        map.setOnCameraIdleListener((center, zoom) -> {
+            // 코드로 옮긴 이동은 여기로 안 옴 → 사용자가 직접 움직인 것.
+            // 내 위치에서 50m 넘게 떨어진 곳을 보고 있으면 더 이상 내 위치로 끌고 오지 않는다
+            if (currentLocation != null) {
+                float[] d = new float[1];
+                Location.distanceBetween(center.getLatitude(), center.getLongitude(),
+                        currentLocation.getLatitude(), currentLocation.getLongitude(), d);
+                followMe = d[0] <= 50f;
+            }
+            scheduleReloadForCamera();
+        });
         map.start(() -> switchMode("nearby"));
 
         binding.fabCreate.setOnClickListener(v -> com.example.footprint.ui.LocationConsent.request(this, () -> startActivity(new Intent(this, CreateGuestbookActivity.class))));
@@ -160,9 +173,13 @@ public class MainActivity extends AppCompatActivity implements com.example.footp
         map.clearGuestbooks();
 
         if ("nearby".equals(mode)) {
+            followMe = true;
             if (currentLocation != null) {
                 map.moveCamera(currentLocation.getLatitude(), currentLocation.getLongitude(), AppConfig.NEARBY_DEFAULT_ZOOM);
             } else {
+                // GPS를 기다리는 동안 마지막으로 알던 내 위치를 먼저 보여 줌 (빈 지도/엉뚱한 곳 방지)
+                double[] last = com.example.footprint.util.MapPrefs.lastLocation(this);
+                if (last != null) map.moveCamera(last[0], last[1], AppConfig.NEARBY_DEFAULT_ZOOM);
                 ensureLocationPermissionAndLoad();
             }
         } else if ("me".equals(mode)) {
@@ -191,6 +208,7 @@ public class MainActivity extends AppCompatActivity implements com.example.footp
                 ? AppConfig.NEARBY_DEFAULT_ZOOM
                 : Math.max(map.getZoomLevel(), (int) Math.round(AppConfig.ZOOM_DETAIL));
         if ("nearby".equals(mode)) map.setRadiusLimit(lat, lng, AppConfig.NEARBY_MAX_RADIUS_METERS);
+        followMe = true;
         map.moveCamera(lat, lng, zoom);
         scheduleReloadForCamera(); // moveCamera 는 idle 재조회를 막으므로 직접 다시 불러옴
     }
@@ -259,6 +277,12 @@ public class MainActivity extends AppCompatActivity implements com.example.footp
         try {
             fusedClient.requestLocationUpdates(request, locationCallback, Looper.getMainLooper());
             requestingUpdates = true;
+            // 정확한 GPS 첫 위치는 몇 초 걸릴 수 있어서, 기기가 마지막으로 알던 위치로 먼저 지도를 띄움
+            if (currentLocation == null) {
+                fusedClient.getLastLocation().addOnSuccessListener(this, last -> {
+                    if (last != null && currentLocation == null) onNewLocation(last);
+                });
+            }
         } catch (SecurityException ignored) {
         }
     }
@@ -274,15 +298,18 @@ public class MainActivity extends AppCompatActivity implements com.example.footp
         boolean firstFix = (currentLocation == null);
         currentLocation = loc;
         map.showMyLocation(loc);
+        com.example.footprint.util.MapPrefs.saveLastLocation(this, loc.getLatitude(), loc.getLongitude());
 
         if ("nearby".equals(mode)) {
             // 반경 제한 기준점을 내 위치로 갱신
             map.setRadiusLimit(loc.getLatitude(), loc.getLongitude(), AppConfig.NEARBY_MAX_RADIUS_METERS);
             if (firstFix) {
+                followMe = true;
                 map.moveCamera(loc.getLatitude(), loc.getLongitude(), AppConfig.NEARBY_DEFAULT_ZOOM);
-            } else {
+            } else if (followMe) {
                 map.moveCamera(loc.getLatitude(), loc.getLongitude()); // 줌 유지하고 따라가기
             }
+            // (사용자가 다른 곳을 보고 있으면 카메라는 그대로 두고 파란 점만 움직임)
             // 내 위치 기준 조회라서 100m 이상 움직였을 때만 재조회
             if (lastReloadLocation == null || lastReloadLocation.distanceTo(loc) > 100f) {
                 lastReloadLocation = loc;
@@ -419,6 +446,9 @@ public class MainActivity extends AppCompatActivity implements com.example.footp
             scheduleReloadForCamera();
         }
         lastPick = pick;
+        // 다른 화면(작성·프로필 등)에서 돌아오면 바뀐 방명록이 있을 수 있어 한 번 다시 불러옴
+        if (resumedOnce && map.isReady()) scheduleReloadForCamera();
+        resumedOnce = true;
     }
 
     @Override public void onLetterBoxClosed() { refreshLetterDot(); }

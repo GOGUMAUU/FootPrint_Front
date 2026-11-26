@@ -31,4 +31,17 @@ public final class MapPrefs {
     /** 게시판 마지막 정렬: latest(기본) | popular | distance */
     public static String boardSort(Context c) { return sp(c).getString(KEY_BOARD_SORT, "latest"); }
     public static void setBoardSort(Context c, String v) { sp(c).edit().putString(KEY_BOARD_SORT, v).apply(); }
+
+    /** 마지막으로 알던 내 위치 (앱을 다시 켤 때 지도를 바로 그 자리로 띄우기 위함, 기기에만 저장) */
+    public static void saveLastLocation(Context c, double lat, double lng) {
+        sp(c).edit().putLong("last_lat", Double.doubleToRawLongBits(lat))
+                .putLong("last_lng", Double.doubleToRawLongBits(lng)).apply();
+    }
+
+    @androidx.annotation.Nullable
+    public static double[] lastLocation(Context c) {
+        SharedPreferences p = sp(c);
+        if (!p.contains("last_lat") || !p.contains("last_lng")) return null;
+        return new double[]{Double.longBitsToDouble(p.getLong("last_lat", 0)), Double.longBitsToDouble(p.getLong("last_lng", 0))};
+    }
 }
