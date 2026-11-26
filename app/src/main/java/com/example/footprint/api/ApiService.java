@@ -85,6 +85,10 @@ public interface ApiService {
     @GET("api/letters/unread-count")
     Call<com.example.footprint.data.model.LetterSummary.UnreadCount> getLetterUnreadCount();
 
+    /** 👣 게시판 상단 발자국 수. ids = clusterIds 콤마 구분 */
+    @GET("api/maps/guestbooks/cluster/footprints")
+    Call<com.example.footprint.data.model.Footprints> getClusterFootprints(@Query("ids") String ids);
+
     @GET("api/maps/search")
     Call<ApiResponse<List>> searchPlaces(
             @Query("keyword") String keyword);

@@ -22,4 +22,6 @@ public class GuestbookDetail {
     public Long recipientId;
     public String recipientNickname;
     public String letterOpenedAt;
+    public long footprintCount;       // 👣 그 자리에 와서 열어 본 사람 수 (작성자 제외)
+    public long todayFootprintCount;  // 그중 오늘
 }
