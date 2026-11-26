@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 연핑크 버튼: 다른 fp 버튼과 같은 아래 두께감 -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#E39AAD" />
+            <corners android:radius="102dp" />
+        </shape>
+    </item>
+    <item android:bottom="5dp">
+        <shape android:shape="rectangle">
+            <solid android:color="#F8BFCD" />
+            <corners android:radius="100dp" />
+        </shape>
+    </item>
+</layer-list>

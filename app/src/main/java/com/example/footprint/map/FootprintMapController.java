@@ -295,12 +295,13 @@ public class FootprintMapController {
 
         for (Guestbook g : list) {
             String labelId = "guestbook-" + g.getId();
-            Bitmap bitmap = GuestbookMarkerRenderer.createMarkerBitmap(
-                    context, g.getShortText(), g.isRepresentative() || g.isClustered());
+            Bitmap bitmap = g.isLetter()
+                    ? GuestbookMarkerRenderer.createLetterBitmap(context, g.getShortText())
+                    : GuestbookMarkerRenderer.createMarkerBitmap(context, g.getShortText(), g.isRepresentative() || g.isClustered());
             Label label = guestbookLayer.addLabel(
                     LabelOptions.from(labelId, LatLng.from(g.getLatitude(), g.getLongitude()))
-                            // 말풍선 꼬리 끝(아래 가운데)이 실제 좌표를 가리키도록
-                            .setStyles(LabelStyle.from(bitmap).setAnchorPoint(0.5f, 1.0f)));
+                            // 말풍선은 꼬리 끝(아래 가운데), 편지 동그라미는 원의 중심이 실제 좌표를 가리키도록
+                            .setStyles(LabelStyle.from(bitmap).setAnchorPoint(0.5f, g.isLetter() ? 0.47f : 1.0f)));
             if (label != null) guestbookByLabelId.put(labelId, g);
         }
     }

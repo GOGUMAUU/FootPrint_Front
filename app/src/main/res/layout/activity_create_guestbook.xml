@@ -214,7 +214,7 @@
             android:gravity="center"
             android:text="전체 공개"
             android:textColor="@color/fp_chip_text"
-            android:textSize="16sp" />
+            android:textSize="14sp" />
 
         <RadioButton
             android:id="@+id/rbFollowers"
@@ -229,13 +229,14 @@
             android:gravity="center"
             android:text="팔로워 공개"
             android:textColor="@color/fp_chip_text"
-            android:textSize="16sp" />
+            android:textSize="14sp" />
 
         <RadioButton
             android:id="@+id/rbPrivate"
             android:layout_width="0dp"
             android:layout_height="44dp"
             android:layout_marginStart="4dp"
+            android:layout_marginEnd="4dp"
             android:layout_weight="1"
             android:background="@drawable/bg_fp_chip"
             android:button="@null"
@@ -243,8 +244,82 @@
             android:gravity="center"
             android:text="나만 보기"
             android:textColor="@color/fp_chip_text"
-            android:textSize="16sp" />
+            android:textSize="14sp" />
+
+        <RadioButton
+            android:id="@+id/rbLetter"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_marginStart="4dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_fp_chip_letter_radio"
+            android:button="@null"
+            android:fontFamily="@font/jua"
+            android:gravity="center"
+            android:text="편지 쓰기"
+            android:textColor="@color/fp_chip_text"
+            android:textSize="14sp" />
     </RadioGroup>
+
+    <!-- 💌 '편지 쓰기'를 고르면 나타나는 받는 친구 선택 -->
+    <LinearLayout
+        android:id="@+id/letterPanel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/bg_fp_letter_card_on"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="16dp"
+        android:paddingTop="10dp"
+        android:paddingEnd="12dp"
+        android:paddingBottom="10dp"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvLetterTo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:fontFamily="@font/jua"
+                android:maxLines="1"
+                android:text="💌 친구에게 편지로 남기기"
+                android:textColor="#B5546C"
+                android:textSize="16sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:fontFamily="@font/gowun_dodum"
+                android:text="받는 친구가 이 자리에 와야 열어 볼 수 있어요"
+                android:textColor="#9A6B78"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/btnPickRecipient"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/bg_fp_letter_chip_on"
+            android:fontFamily="@font/jua"
+            android:paddingStart="14dp"
+            android:paddingTop="7dp"
+            android:paddingEnd="14dp"
+            android:paddingBottom="7dp"
+            android:text="친구 고르기"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp" />
+    </LinearLayout>
 
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/btnSave"

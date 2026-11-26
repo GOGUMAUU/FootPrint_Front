@@ -10,6 +10,7 @@ import android.graphics.Path;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
+import android.view.View;
 import android.view.Gravity;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -150,6 +151,16 @@ public class CreateGuestbookActivity extends AppCompatActivity {
         binding.btnTakePhoto.setOnClickListener(v -> openCamera());
         renderPhotos();
         binding.btnSave.setOnClickListener(v -> save());
+        // 공개 범위: 전체 공개 / 팔로워 공개 / 나만 보기 / 편지 쓰기(연핑크)
+        binding.rgVisibility.setOnCheckedChangeListener((group, checkedId) -> setLetterMode(checkedId == R.id.rbLetter));
+        View.OnClickListener pickRecipient = v -> RecipientPickerSheet.show(getSupportFragmentManager());
+        binding.letterPanel.setOnClickListener(pickRecipient);
+        binding.btnPickRecipient.setOnClickListener(pickRecipient);
+        getSupportFragmentManager().setFragmentResultListener(RecipientPickerSheet.RESULT_KEY, this, (key, b) -> {
+            letterRecipientId = b.getLong(RecipientPickerSheet.RESULT_ID);
+            letterRecipientName = b.getString(RecipientPickerSheet.RESULT_NAME);
+            renderLetterRecipient();
+        });
         binding.btnBack.setOnClickListener(v -> finish());
         binding.etContent.addTextChangedListener(new android.text.TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int a, int b, int c) {}
@@ -223,6 +234,7 @@ public class CreateGuestbookActivity extends AppCompatActivity {
         if (selected == null) { Toast.makeText(this, "지도에서 장소를 선택하세요.", Toast.LENGTH_SHORT).show(); return; }
         if (photos.isEmpty()) { Toast.makeText(this, "사진을 선택하세요.", Toast.LENGTH_SHORT).show(); return; }
         if (text.isEmpty()) { Toast.makeText(this, "짧은 글을 입력하세요.", Toast.LENGTH_SHORT).show(); return; }
+        if (letterMode && letterRecipientId == null) { Toast.makeText(this, "편지를 받을 친구를 골라 주세요.", Toast.LENGTH_SHORT).show(); return; }
         submit(text);
     }
 
@@ -303,8 +315,11 @@ public class CreateGuestbookActivity extends AppCompatActivity {
             final double lng = selected.getLongitude();
             final double curLat = loc.getLatitude();
             final double curLng = loc.getLongitude();
-            final String visibility = binding.rbPrivate.isChecked() ? "PRIVATE"
+            final String visibility = letterMode ? "LETTER"
+                    : binding.rbPrivate.isChecked() ? "PRIVATE"
                     : (binding.rbFollowers.isChecked() ? "FOLLOWERS_ONLY" : "PUBLIC");
+            final Long recipientId = letterMode ? letterRecipientId : null;
+            final String recipientName = letterRecipientName;
             final String locName = selectedName == null ? null
                     : (selectedName.length() > 100 ? selectedName.substring(0, 100) : selectedName);
 
@@ -320,6 +335,7 @@ public class CreateGuestbookActivity extends AppCompatActivity {
                     body.put("currentLongitude", curLng);
                     body.put("content", text);
                     body.put("visibility", visibility);
+                    if (recipientId != null) body.put("recipientId", recipientId);
                     body.put("photoPaths", paths);
                     if (locName != null) body.put("locationName", locName);
 
@@ -327,7 +343,9 @@ public class CreateGuestbookActivity extends AppCompatActivity {
                     if (!res.isSuccessful()) throw new IllegalStateException(errorMessage(res));
 
                     runOnUiThread(() -> {
-                        Toast.makeText(this, "방명록을 남겼어요!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, recipientId != null
+                                ? "편지를 남겼어요! " + recipientName + "님이 이 자리에 오면 열어 볼 수 있어요."
+                                : "방명록을 남겼어요!", Toast.LENGTH_LONG).show();
                         setResult(RESULT_OK);
                         finish();
                     });
@@ -369,6 +387,29 @@ public class CreateGuestbookActivity extends AppCompatActivity {
         } catch (Exception ignored) {
         }
         return "서버 오류가 났어요. (코드 " + res.code() + ")";
+    }
+
+    // ───────────────────────── 💌 편지 ─────────────────────────
+
+    private boolean letterMode;
+    @androidx.annotation.Nullable private Long letterRecipientId;
+    @androidx.annotation.Nullable private String letterRecipientName;
+
+    private void setLetterMode(boolean on) {
+        letterMode = on;
+        binding.letterPanel.setVisibility(on ? View.VISIBLE : View.GONE);
+        binding.btnSave.setBackgroundResource(on ? R.drawable.bg_fp_btn_pink : R.drawable.bg_fp_btn_coral);
+        binding.btnSave.setText(on ? "편지 남기기" : "방명록 저장");
+        binding.btnSave.setTextColor(on ? 0xFF5A2433 : 0xFF4A2A1A);
+        renderLetterRecipient();
+        // 편지를 처음 고르면 바로 친구 고르기 열기
+        if (on && letterRecipientId == null) RecipientPickerSheet.show(getSupportFragmentManager());
+    }
+
+    private void renderLetterRecipient() {
+        boolean picked = letterRecipientId != null;
+        binding.tvLetterTo.setText(picked ? "💌 To. " + (letterRecipientName == null ? "친구" : letterRecipientName) : "💌 친구에게 편지로 남기기");
+        binding.btnPickRecipient.setText(picked ? "바꾸기" : "친구 고르기");
     }
 
     private void setSaving(boolean s) {

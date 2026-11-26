@@ -19,6 +19,36 @@ public final class LocationConsent {
         if (Session.locationConsent) { allowed.run(); return; }
         if (!active.add(activity)) return;
         long generation = Session.generation();
+        if (ProfileRepository.mock()) { ask(activity, allowed, generation); return; }
+        // 이미 서버에 동의해 둔 사용자는 다시 묻지 않는다 (로그인할 때마다 팝업이 뜨던 문제)
+        ApiClient.create(PolicyApi.class).myConsents().enqueue(new Callback<JsonElement>() {
+            public void onResponse(Call<JsonElement> c, Response<JsonElement> r) {
+                if (activity.isDestroyed() || activity.isFinishing()) { active.remove(activity); return; }
+                if (generation != Session.generation() || !Session.signedIn(activity)) { active.remove(activity); return; }
+                if (r.isSuccessful() && hasLocation(r.body())) {
+                    Session.locationConsent = true;
+                    active.remove(activity);
+                    allowed.run();
+                } else {
+                    ask(activity, allowed, generation);
+                }
+            }
+            public void onFailure(Call<JsonElement> c, Throwable t) {
+                if (activity.isDestroyed() || activity.isFinishing()) { active.remove(activity); return; }
+                ask(activity, allowed, generation); // 확인 실패 시 기존처럼 팝업으로
+            }
+        });
+    }
+
+    private static boolean hasLocation(JsonElement body) {
+        try {
+            for (JsonElement t : body.getAsJsonObject().getAsJsonArray("types")) if ("LOCATION".equals(t.getAsString())) return true;
+        } catch (RuntimeException ignored) {}
+        return false;
+    }
+
+    /** 동의 팝업 띄우기 (기존 흐름) */
+    private static void ask(AppCompatActivity activity, Runnable allowed, long generation) {
         PolicyViewModel model = new ViewModelProvider(activity).get(PolicyViewModel.class);
         // This helper owns the policy observers on location screens. Remove failed
         // attempts before registering again so a later success opens only one dialog.

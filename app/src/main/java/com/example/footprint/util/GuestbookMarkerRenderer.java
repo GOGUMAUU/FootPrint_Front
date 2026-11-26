@@ -22,13 +22,62 @@ public final class GuestbookMarkerRenderer {
             0xFFF5A04A, 0xFFF2C94C, 0xFF6FBF73, 0xFF5AB4E8, 0xFFA98BE0
     };
 
-    public static Bitmap createMarkerBitmap(Context context, String shortText, boolean representative) {
-        float d = context.getResources().getDisplayMetrics().density;
-        float maxW = context.getResources().getDisplayMetrics().widthPixels / 3f; // 폰 가로의 1/3
+    // 편지 말풍선: 연핑크
+    public static final int LETTER_FILL = 0xFFFFF0F3;
+    public static final int LETTER_BORDER = 0xFFF4A6B8;
+    public static final int LETTER_TEXT = 0xFF8A4B5C;
 
+    public static Bitmap createMarkerBitmap(Context context, String shortText, boolean representative) {
         String text = (shortText == null || shortText.trim().isEmpty()) ? "방명록" : shortText.trim();
         // 같은 글은 항상 같은 색 (지도를 움직여도 색이 안 바뀜)
         int color = BORDER_COLORS[(text.hashCode() & 0x7fffffff) % BORDER_COLORS.length];
+        return render(context, text, 0xFFFFFDF4, color, 0xFF5E4128);
+    }
+
+    /**
+     * 그 자리에서 열리는 편지 마커: 연핑크 동그라미 안에 💌 (말풍선 대신).
+     * 다른 fp 버튼처럼 아래쪽에 살짝 두께감. 중심이 실제 좌표 → anchor (0.5, 0.5)
+     */
+    public static Bitmap createLetterBitmap(Context context, String ignored) {
+        float d = context.getResources().getDisplayMetrics().density;
+        float size = 44 * d;          // 동그라미 지름
+        float depth = 3 * d;          // 아래 두께감
+        float stroke = 3 * d;
+        float margin = 3 * d;         // 누르기 쉽게 투명 여백
+        int w = (int) Math.ceil(size + 2 * margin);
+        int h = (int) Math.ceil(size + depth + 2 * margin);
+
+        Bitmap bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        float cx = w / 2f;
+        float cy = margin + size / 2f;
+        float r = size / 2f - stroke / 2f;
+
+        Paint shadow = new Paint(Paint.ANTI_ALIAS_FLAG);
+        shadow.setColor(0xFFF4C3CF);
+        canvas.drawCircle(cx, cy + depth, r + stroke / 2f, shadow);
+
+        Paint fill = new Paint(Paint.ANTI_ALIAS_FLAG);
+        fill.setColor(LETTER_FILL);
+        canvas.drawCircle(cx, cy, r, fill);
+
+        Paint line = new Paint(Paint.ANTI_ALIAS_FLAG);
+        line.setStyle(Paint.Style.STROKE);
+        line.setStrokeWidth(stroke);
+        line.setColor(LETTER_BORDER);
+        canvas.drawCircle(cx, cy, r, line);
+
+        TextPaint tp = new TextPaint(Paint.ANTI_ALIAS_FLAG);
+        tp.setTextSize(22 * d);
+        tp.setTextAlign(Paint.Align.CENTER);
+        Paint.FontMetrics fm = tp.getFontMetrics();
+        canvas.drawText("💌", cx, cy - (fm.ascent + fm.descent) / 2f, tp);
+        return bitmap;
+    }
+
+    private static Bitmap render(Context context, String text, int fillColor, int color, int textColor) {
+        float d = context.getResources().getDisplayMetrics().density;
+        float maxW = context.getResources().getDisplayMetrics().widthPixels / 3f; // 폰 가로의 1/3
 
         float stroke = 3 * d;
         float padH = 12 * d;
@@ -38,7 +87,7 @@ public final class GuestbookMarkerRenderer {
         float margin = 4 * d; // 좌우·위 투명 여백 (누르기 쉽게)
 
         TextPaint tp = new TextPaint(Paint.ANTI_ALIAS_FLAG);
-        tp.setColor(0xFF5E4128);
+        tp.setColor(textColor);
         tp.setTextSize(14 * d);
         try {
             Typeface tf = ResourcesCompat.getFont(context, R.font.jua);
@@ -60,7 +109,7 @@ public final class GuestbookMarkerRenderer {
         Bitmap bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
         Paint fill = new Paint(Paint.ANTI_ALIAS_FLAG);
-        fill.setColor(0xFFFFFDF4);
+        fill.setColor(fillColor);
         Paint line = new Paint(Paint.ANTI_ALIAS_FLAG);
         line.setStyle(Paint.Style.STROKE);
         line.setStrokeWidth(stroke);

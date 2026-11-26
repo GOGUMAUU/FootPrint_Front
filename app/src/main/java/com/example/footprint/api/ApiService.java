@@ -74,6 +74,17 @@ public interface ApiService {
             @Query("longitude") Double longitude,
             @Query("sort") String sort);
 
+    // ---------- 💌 그 자리에서 열리는 편지 ----------
+    @GET("api/letters/inbox")
+    Call<List<com.example.footprint.data.model.LetterSummary>> getLetterInbox(
+            @Query("lat") Double lat, @Query("lng") Double lng);
+
+    @GET("api/letters/sent")
+    Call<List<com.example.footprint.data.model.LetterSummary>> getLetterSent();
+
+    @GET("api/letters/unread-count")
+    Call<com.example.footprint.data.model.LetterSummary.UnreadCount> getLetterUnreadCount();
+
     @GET("api/maps/search")
     Call<ApiResponse<List>> searchPlaces(
             @Query("keyword") String keyword);
@@ -175,4 +186,8 @@ public interface ApiService {
     Call<PageResponse<UserSummary>> getUserFollowers(@Path("userId") long userId, @Query("size") int size);
     @GET("api/users/{userId}/following")
     Call<PageResponse<UserSummary>> getUserFollowing(@Path("userId") long userId);
+
+    @GET("api/users/{userId}/following")
+    Call<PageResponse<UserSummary>> getUserFollowing(@Path("userId") long userId,
+                                                     @Query("page") int page, @Query("size") int size);
 }
