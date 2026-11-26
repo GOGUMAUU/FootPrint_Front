@@ -206,10 +206,36 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updateModeButtons() {
+        boolean isMyMap = "me".equals(mode);
+
         binding.btnNearby.setSelected("nearby".equals(mode));
         binding.btnFollowing.setSelected("following".equals(mode));
-        binding.btnMyMap.setSelected("me".equals(mode));
-        binding.btnMap.setSelected(!"me".equals(mode));
+        binding.btnMyMap.setSelected(isMyMap);
+        binding.btnMap.setSelected(!isMyMap);
+
+        styleBottomNavItem(binding.btnMap, !isMyMap);
+        styleBottomNavItem(binding.btnMyMap, isMyMap);
+        styleBottomNavItem(binding.btnUsers, false);
+        styleBottomNavItem(binding.btnChallenges, false);
+        styleBottomNavItem(binding.btnProfile, false);
+    }
+    private void styleBottomNavItem(android.widget.TextView item, boolean selected) {
+        int activeColor = android.graphics.Color.parseColor("#2F7D46");
+        int inactiveColor = android.graphics.Color.parseColor("#80684C");
+        int color = selected ? activeColor : inactiveColor;
+
+        item.setTextColor(color);
+        androidx.core.widget.TextViewCompat.setCompoundDrawableTintList(
+                item, android.content.res.ColorStateList.valueOf(color));
+
+        if (selected) {
+            android.graphics.drawable.GradientDrawable bg = new android.graphics.drawable.GradientDrawable();
+            bg.setColor(android.graphics.Color.parseColor("#DDF2CE"));
+            bg.setCornerRadius(20 * getResources().getDisplayMetrics().density);
+            item.setBackground(bg);
+        } else {
+            item.setBackground(null);
+        }
     }
 
     // ───────────────────────── 위치 ─────────────────────────
