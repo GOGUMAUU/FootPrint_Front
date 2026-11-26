@@ -71,96 +71,43 @@
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
-
-    <!-- 3. 하단 내비게이션 바: 지도 / 내 지도 / 친구 / 챌린지 / 내 정보 -->
     <LinearLayout
         android:id="@+id/bottomNavBar"
-        android:layout_width="0dp"
-        android:layout_height="76dp"
-        android:background="@drawable/bg_bottom_bar"
-        android:elevation="8dp"
-        android:gravity="center"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="8dp"
+        android:layout_marginBottom="8dp"
+        android:padding="8dp"
+        android:background="@drawable/bg_profile_card"
         android:orientation="horizontal"
-        android:paddingHorizontal="10dp"
-        android:paddingVertical="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
-
-        <androidx.appcompat.widget.AppCompatButton
+        <TextView
             android:id="@+id/btnMap"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:background="@drawable/bg_bottom_item"
-            android:drawableTop="@android:drawable/ic_dialog_map"
-            android:drawableTint="#5C432D"
-            android:paddingTop="6dp"
-            android:stateListAnimator="@null"
-            android:text="지도"
-            android:textColor="#5C432D"
-            android:textSize="11sp"
-            android:textStyle="bold" />
-
-        <androidx.appcompat.widget.AppCompatButton
+            style="@style/ProfileNavItem"
+            android:text="@string/activity_profile_nav_map_text"
+            android:drawableTop="@drawable/ic_profile_pin" />
+        <TextView
             android:id="@+id/btnMyMap"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:background="@drawable/bg_bottom_item"
-            android:drawableTop="@android:drawable/ic_menu_mylocation"
-            android:drawableTint="#5C432D"
-            android:paddingTop="6dp"
-            android:stateListAnimator="@null"
-            android:text="내 지도"
-            android:textColor="#5C432D"
-            android:textSize="11sp"
-            android:textStyle="bold" />
-
-        <androidx.appcompat.widget.AppCompatButton
+            style="@style/ProfileNavItem"
+            android:text="@string/my_map"
+            android:drawableTop="@drawable/ic_profile_flag" />
+        <TextView
             android:id="@+id/btnUsers"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:background="@drawable/bg_bottom_item"
-            android:drawableTop="@android:drawable/ic_menu_search"
-            android:drawableTint="#5C432D"
-            android:paddingTop="6dp"
-            android:stateListAnimator="@null"
-            android:text="친구"
-            android:textColor="#5C432D"
-            android:textSize="11sp"
-            android:textStyle="bold" />
-
-        <androidx.appcompat.widget.AppCompatButton
+            style="@style/ProfileNavItem"
+            android:text="@string/activity_profile_nav_friends_text"
+            android:drawableTop="@drawable/ic_profile_people" />
+        <TextView
             android:id="@+id/btnChallenges"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:background="@drawable/bg_bottom_item"
-            android:drawableTop="@android:drawable/btn_star_big_off"
-            android:drawableTint="#5C432D"
-            android:paddingTop="6dp"
-            android:stateListAnimator="@null"
-            android:text="챌린지"
-            android:textColor="#5C432D"
-            android:textSize="11sp"
-            android:textStyle="bold" />
-
-        <androidx.appcompat.widget.AppCompatButton
+            style="@style/ProfileNavItem"
+            android:text="@string/activity_profile_nav_challenges_text"
+            android:drawableTop="@drawable/ic_profile_star" />
+        <TextView
             android:id="@+id/btnProfile"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:background="@drawable/bg_bottom_item"
-            android:drawableTop="@android:drawable/ic_menu_myplaces"
-            android:drawableTint="#5C432D"
-            android:paddingTop="6dp"
-            android:stateListAnimator="@null"
-            android:text="내 정보"
-            android:textColor="#5C432D"
-            android:textSize="11sp"
-            android:textStyle="bold" />
+            style="@style/ProfileNavItem"
+            android:text="@string/activity_profile_nav_profile_text"
+            android:drawableTop="@drawable/ic_profile_person" />
     </LinearLayout>
 
     <!-- 내 위치로 가기 (방명록 남기기 버튼 위) -->

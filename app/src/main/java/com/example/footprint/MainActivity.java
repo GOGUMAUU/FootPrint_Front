@@ -130,7 +130,6 @@ public class MainActivity extends AppCompatActivity {
         binding.btnNearby.setOnClickListener(v -> switchMode("nearby"));
         binding.btnFollowing.setOnClickListener(v -> switchMode("following"));
         binding.btnMyMap.setOnClickListener(v -> switchMode("me"));
-        //binding.btnFilter.setOnClickListener(v -> Toast.makeText(this, "필터 UI: 연령대 · 최근 N일 · 인기/최신", Toast.LENGTH_SHORT).show());
         binding.btnFilter.setOnClickListener(v -> {
             com.example.footprint.ui.FilterBottomSheetDialog dialog =
                     com.example.footprint.ui.FilterBottomSheetDialog.newInstance(filterState, mode);

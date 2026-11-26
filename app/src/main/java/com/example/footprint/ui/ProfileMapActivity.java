@@ -75,8 +75,6 @@ public class ProfileMapActivity extends AppCompatActivity {
         if (bounds == null) return;
         int zoom = map.getZoomLevel();
 
-
-
         if (boundsCall != null && !boundsCall.isCanceled()) boundsCall.cancel();
         boundsCall = ApiClient.get().getGuestbooksInBounds(
                 "user",
