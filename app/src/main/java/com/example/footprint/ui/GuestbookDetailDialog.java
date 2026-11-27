@@ -144,7 +144,18 @@ public class GuestbookDetailDialog extends DialogFragment {
         binding.ownerRow.setVisibility(d.mine ? View.VISIBLE : View.GONE);
         binding.btnEdit.setTag(d);
         renderLike();
+        renderFootprint(d);
         if (d.letter) styleAsLetter(d);
+    }
+
+    /** 👣 다녀간 발자국 (편지는 표시 안 함) */
+    private void renderFootprint(GuestbookDetail d) {
+        if (d.letter) { binding.tvFootprint.setVisibility(View.GONE); return; }
+        String text = d.footprintCount == 0
+                ? "👣 아직 다녀간 사람이 없어요"
+                : "👣 " + d.footprintCount + "명이 다녀갔어요" + (d.todayFootprintCount > 0 ? " · 오늘 " + d.todayFootprintCount + "명" : "");
+        binding.tvFootprint.setText(text);
+        binding.tvFootprint.setVisibility(View.VISIBLE);
     }
 
     /** 💌 그 자리에서 열리는 편지: 같은 카드 구조에 연핑크 편지지 느낌 */

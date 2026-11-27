@@ -163,6 +163,7 @@ public class GuestbookBoardSheet extends BottomSheetDialogFragment {
                 if (!r.isSuccessful() || r.body() == null) { showState("목록을 불러오지 못했어요. 잠시 후 다시 시도해 주세요."); return; }
                 List<Guestbook> list = r.body();
                 count.setText(list.size() + "개의 방명록");
+                loadFootprints(list.size());
                 adapter.submit(list);
                 if (list.isEmpty()) showState("볼 수 있는 방명록이 없어요."); else state.setVisibility(View.GONE);
             }
@@ -170,6 +171,19 @@ public class GuestbookBoardSheet extends BottomSheetDialogFragment {
                 if (!isAdded() || c.isCanceled()) return;
                 showState("서버에 연결할 수 없어요.");
             }
+        });
+    }
+
+    /** 👣 "N개의 방명록 · 23명이 다녀간 자리" */
+    private void loadFootprints(int postCount) {
+        ApiClient.get().getClusterFootprints(idsCsv).enqueue(new Callback<com.example.footprint.data.model.Footprints>() {
+            @Override public void onResponse(@NonNull Call<com.example.footprint.data.model.Footprints> c,
+                                             @NonNull Response<com.example.footprint.data.model.Footprints> r) {
+                if (!isAdded() || !r.isSuccessful() || r.body() == null || r.body().count <= 0) return;
+                count.setText(postCount + "개의 방명록 · 👣 " + r.body().count + "명이 다녀간 자리"
+                        + (r.body().today > 0 ? " (오늘 " + r.body().today + "명)" : ""));
+            }
+            @Override public void onFailure(@NonNull Call<com.example.footprint.data.model.Footprints> c, @NonNull Throwable t) {}
         });
     }
 

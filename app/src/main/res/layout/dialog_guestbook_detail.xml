@@ -133,6 +133,22 @@
                         android:textSize="14sp" />
                 </LinearLayout>
 
+                <!-- 👣 다녀간 발자국 -->
+                <TextView
+                    android:id="@+id/tvFootprint"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:background="@drawable/bg_fp_chip_place"
+                    android:fontFamily="@font/gowun_dodum"
+                    android:paddingStart="12dp"
+                    android:paddingTop="6dp"
+                    android:paddingEnd="12dp"
+                    android:paddingBottom="6dp"
+                    android:textColor="#1F4F6B"
+                    android:textSize="14sp"
+                    android:visibility="gone" />
+
                 <HorizontalScrollView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
